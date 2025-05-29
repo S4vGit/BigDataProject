@@ -1,0 +1,40 @@
+// FIRST PART: node "Tweet" creation
+LOAD CSV WITH HEADERS FROM 'file:///ds_obama_final.csv' AS row
+
+MERGE (t:Tweet {
+  date: row.Date,
+  text: row.`Tweet-text`
+})
+SET t.retweets = toInteger(row.Retweets),
+    t.likes = toInteger(row.Likes),
+    t.topic = row.topic,
+    t.confidence = toFloat(row.confidence),
+    t.sentiment = row.sentiment,
+    t.sentiment_confidence = toFloat(row.sentiment_confidence);
+	
+// SECOND PART: node "Entity" creation and relation "MENTIONS" creation
+	
+LOAD CSV WITH HEADERS FROM 'file:///ds_obama_final.csv' AS row
+
+// Pulizia della colonna entities
+WITH row, replace(replace(replace(replace(replace(row.entities, "[", ""), "]", ""), "(", ""), ")", ""), "'", "") AS cleaned
+
+// Splitting e accoppiamento name-type
+WITH row, split(cleaned, ", ") AS parts
+WITH row, [i IN range(0, size(parts)-1) 
+           WHERE i % 2 = 0 AND i + 1 < size(parts) 
+           | {name: trim(parts[i]), type: trim(parts[i+1])}] AS entityTuples
+
+UNWIND entityTuples AS entity
+
+// Evita entità vuote o nulle
+WITH row, entity
+WHERE entity.name IS NOT NULL AND entity.type IS NOT NULL AND entity.name <> "" AND entity.type <> ""
+
+MERGE (e:Entity {name: entity.name, type: entity.type})
+
+// IMPORTANTE: passare anche row ed e
+WITH row, e
+
+MATCH (t:Tweet {date: row.Date, text: row.`Tweet-text`})
+MERGE (t)-[:MENTIONS]->(e);
