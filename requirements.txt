@@ -3,3 +3,6 @@ uvicorn
 jinja2
 neo4j
 python-dotenv
+llama-cpp-python
+faiss-cpu
+sentence-transformers
