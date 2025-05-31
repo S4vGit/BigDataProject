@@ -16,25 +16,31 @@ SET t.retweets = toInteger(row.Retweets),
 	
 LOAD CSV WITH HEADERS FROM 'file:///ds_obama_final.csv' AS row
 
-// Pulizia della colonna entities
-WITH row, replace(replace(replace(replace(replace(row.entities, "[", ""), "]", ""), "(", ""), ")", ""), "'", "") AS cleaned
+// Pulizia iniziale (rimuove parentesi quadre esterne e dividi ogni entità con '],[')
+WITH row, replace(replace(replace(row.entities, "[[", ""), "]]", ""), "'],['", "|") AS cleaned
 
-// Splitting e accoppiamento name-type
-WITH row, split(cleaned, ", ") AS parts
-WITH row, [i IN range(0, size(parts)-1) 
-           WHERE i % 2 = 0 AND i + 1 < size(parts) 
-           | {name: trim(parts[i]), type: trim(parts[i+1])}] AS entityTuples
+// Rimuove eventuali altri caratteri non necessari
+WITH row, replace(replace(cleaned, "[", ""), "]", "") AS flat
 
-UNWIND entityTuples AS entity
+// Splitta tra le entità usando il separatore personalizzato "|"
+WITH row, split(flat, "|") AS entityStrings
 
-// Evita entità vuote o nulle
-WITH row, entity
-WHERE entity.name IS NOT NULL AND entity.type IS NOT NULL AND entity.name <> "" AND entity.type <> ""
+UNWIND entityStrings AS eString
 
-MERGE (e:Entity {name: entity.name, type: entity.type})
+// Ora ogni eString è del tipo "'NBA' 'ORG'"
+WITH row, trim(eString) AS raw
 
-// IMPORTANTE: passare anche row ed e
+// Splitta tra nome e tipo usando lo spazio
+WITH row, split(raw, "' '") AS parts
+WHERE size(parts) = 2  // scarta quelle malformate
+
+// Pulisce i singoli campi
+WITH row, replace(parts[0], "'", "") AS name, replace(parts[1], "'", "") AS type
+WHERE name <> "" AND type <> ""
+
+MERGE (e:Entity {name: name, type: type})
+
+// Collega l'entità al tweet
 WITH row, e
-
 MATCH (t:Tweet {date: row.Date, text: row.`Tweet-text`})
 MERGE (t)-[:MENTIONS]->(e);
