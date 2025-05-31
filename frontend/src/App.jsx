@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import './App.css';
 
+import LikesByYearChart from './components/LikesByYearChart'; 
+
 const App = () => {
   const [tweet, setTweet] = useState('');
   const [profile, setProfile] = useState('');
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState(null);
+
+  const [selectedTopic, setSelectedTopic] = useState('USA');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,8 +32,10 @@ const App = () => {
     setLoading(false);
   };
 
+  const topics = ["politics", "climate change", "USA", "health", "family", "business", "finance"];
+
   return (
-    <div className="container py-5 d-flex justify-content-center">
+    <div className="container py-5 d-flex flex-column align-items-center">
       <div className="card p-4 shadow" style={{ maxWidth: '700px', width: '100%' }}>
         <div className="text-center mb-4">
           <i className="fas fa-user-secret fa-2x text-primary me-2"></i>
@@ -81,6 +87,21 @@ const App = () => {
           </div>
         )}
       </div>
+
+      {/* GRAFICO LIKES PER TOPIC */}
+      <div className="card p-4 shadow mt-5" style={{ maxWidth: '700px', width: '100%' }}>
+        <div className="mb-3">
+          <h5>Like Topic per Year</h5>
+          <select className="form-select" value={selectedTopic} onChange={(e) => setSelectedTopic(e.target.value)}>
+            {topics.map(topic => (
+              <option key={topic} value={topic}>{topic}</option>
+            ))}
+          </select>
+        </div>
+        <LikesByYearChart topic={selectedTopic} />
+      </div>
+
+
     </div>
   );
 };
