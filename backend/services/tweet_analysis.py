@@ -11,12 +11,14 @@ classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnl
 def analyze_tweet_with_context(tweet: str, author: str, df_author: pd.DataFrame) -> dict:
     """
     Analyze a tweet by comparing it with the author's previous tweets.
-        Args:
-            tweet (str): The tweet to analyze.
-            author (str): The author's name.
-            df_author (pd.DataFrame): DataFrame containing the author's tweets.
-        Returns:
-            dict: A dictionary containing the result of the analysis and confidence score.
+        
+    Args:
+        tweet (str): The tweet to analyze.
+        author (str): The author's name.
+        df_author (pd.DataFrame): DataFrame containing the author's tweets.
+        
+    Returns:
+        dict: A dictionary containing the result of the analysis and confidence score.
     """
     if df_author.empty:
         return {"error": "No tweets found for this author"}

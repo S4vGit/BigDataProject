@@ -5,9 +5,7 @@ from schemas import TweetRequest, TweetResponse
 import pandas as pd
 from neo4j_connector import Neo4jConnector
 
-from transformers import pipeline
-#from llama_cpp import Llama  # Assicurati che sia installato
-
+from services.topic_extraction import classify_topic
 from services.tweet_analysis import analyze_tweet_with_context
 
 app = FastAPI()
@@ -25,6 +23,19 @@ app.add_middleware(
 
 @app.post("/analyze")
 async def analyze_tweet(data: TweetRequest):
-    df_author = connector.get_tweets_by_author(data.author)
-    result = analyze_tweet_with_context(data.tweet, data.author, pd.DataFrame(df_author))
+    topic, confidence = classify_topic(data.tweet)
+    print(f"[DEBUG] Topic estratto: {topic} ({confidence:.2%})")
+    
+    df = connector.get_tweets_by_author_topic(data.author, topic)
+    df = pd.DataFrame(df)
+    
+    # If no tweets are found for the specified author and topic, return a message
+    if df.empty:
+        return {
+            "result": "ERROR: No tweets found for this author and topic.",
+        }
+    
+    result = analyze_tweet_with_context(data.tweet, data.author, df)
+    result["topic"] = topic
+    result["topic_confidence"] = round(confidence * 100, 2)
     return result

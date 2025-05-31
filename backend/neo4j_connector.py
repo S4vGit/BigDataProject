@@ -20,27 +20,42 @@ class Neo4jConnector:
         """
         self.driver.close()
 
-    def get_tweets_by_topic(self, topic: str, limit: int = 5):
+    def get_tweets_by_author_topic(self, author: str, topic: str):
+        """
+        Retrieve tweets by a specific author and topic from the Neo4j database.
+        
+        Args:
+            author (str): The author's name to search for.
+            topic (str): The topic to filter tweets by.
+            
+        Returns:
+            list: A list of tweets by the specified author and topic, each represented as a dictionary.
+        """
+        if author.lower() != "obama":
+            print("[DEBUG] Author not found.")
+            return []
+        
         with self.driver.session() as session:
             result = session.run(
                 """
                 MATCH (t:Tweet)
                 WHERE t.topic = $topic
                 RETURN t.text AS text, t.date AS date, t.sentiment AS sentiment
-                LIMIT $limit
                 """,
                 topic=topic,
-                limit=limit
             )
             return [record.data() for record in result]
+
 
     def get_tweets_by_author(self, author: str):
         """
         Retrieve tweets by a specific author from the Neo4j database.
-            Args:
-                author (str): The author's name to search for.
-            Returns:
-                list: A list of tweets by the specified author, each represented as a dictionary.
+            
+        Args:
+            author (str): The author's name to search for.
+            
+        Returns:
+            list: A list of tweets by the specified author, each represented as a dictionary.
         """
         if author.lower() != "obama":
             return ValueError("Author not found.")
