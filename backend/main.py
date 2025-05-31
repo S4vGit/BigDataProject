@@ -1,9 +1,10 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from schemas import TweetRequest, TweetResponse
 import pandas as pd
 from neo4j_connector import Neo4jConnector
+
 
 from services.topic_extraction import classify_topic
 from services.tweet_analysis import analyze_tweet_with_context
@@ -24,7 +25,7 @@ app.add_middleware(
 @app.post("/analyze")
 async def analyze_tweet(data: TweetRequest):
     topic, confidence = classify_topic(data.tweet)
-    print(f"[DEBUG] Topic estratto: {topic} ({confidence:.2%})")
+    print(f"[DEBUG] Topic extracted: {topic} ({confidence:.2%})")
     
     df = connector.get_tweets_by_author_topic(data.author, topic)
     df = pd.DataFrame(df)
@@ -39,3 +40,11 @@ async def analyze_tweet(data: TweetRequest):
     result["topic"] = topic
     result["topic_confidence"] = round(confidence * 100, 2)
     return result
+
+@app.get("/analytics/likes-by-year")
+async def get_likes_by_year(topic: str = Query(..., description="Topic to analyze")):
+    try:
+        data = connector.get_likes_by_year_for_topic(topic)
+        return {"topic": topic, "data": data}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})

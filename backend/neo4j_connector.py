@@ -69,3 +69,28 @@ class Neo4jConnector:
                 """,
             )
             return [record.data() for record in result]
+        
+    def get_likes_by_year_for_topic(self, topic: str):
+        
+        """
+        Return number of likes per year for a given topic. 
+        
+        Args:
+            topic (str): The topic to filter tweets by.
+        
+        Returns:
+            list: A list of dictionaries with year and total likes for that year.
+        """
+        with self.driver.session() as session:
+            result = session.run(
+                """
+                MATCH (t:Tweet)
+                WHERE t.topic = $topic
+                WITH t, split(t.date, "/")[0] AS year
+                RETURN year, sum(t.likes) AS total_likes
+                ORDER BY year
+                """,
+                topic=topic
+            )
+            return [{"year": record["year"], "likes": record["total_likes"]} for record in result]
+
