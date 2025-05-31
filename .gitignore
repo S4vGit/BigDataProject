@@ -243,3 +243,8 @@ $RECYCLE.BIN/
 
 # Project Relative
 prompting/models/
+
+# React build output
+frontend/node_modules/
+frontend/build/
+frontend/dist/
