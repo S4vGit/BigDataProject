@@ -44,7 +44,36 @@ class Neo4jConnector:
             result = session.run(query, limit=limit)
             return result.data()
 
-       
+     
+    def get_average_sentiment_by_topic(self):
+        """
+        Retrieve the average sentiment for each topic from the Neo4j database.
+        
+        Returns:
+            list: A list of dictionaries containing the topic and its average sentiment value.
+        """
+        with self.driver.session() as session:
+            result = session.run("""
+                MATCH (t:Tweet)
+                WHERE t.sentiment IN ['positive', 'neutral', 'negative'] 
+                AND t.topic IS NOT NULL 
+                AND t.sentiment_confidence IS NOT NULL
+                WITH t.topic AS topic,
+                    CASE t.sentiment
+                        WHEN 'positive' THEN 1
+                        WHEN 'neutral' THEN 0
+                        WHEN 'negative' THEN -1
+                    END AS s_value,
+                    t.sentiment_confidence AS weight
+                RETURN topic, 
+                    sum(s_value * weight) / sum(weight) AS weighted_average_sentiment
+                ORDER BY weighted_average_sentiment DESC
+            """)
+            return [
+                {"topic": row["topic"], "average_sentiment": row["weighted_average_sentiment"]}
+                for row in result
+            ]
+        
     def get_topic_trend_by_year(self, year: str):
         """
         Retrieve the topic trend for a specific year from the Neo4j database.
@@ -93,7 +122,6 @@ class Neo4jConnector:
             )
             return [record.data() for record in result]
 
-        
     def get_likes_by_year_for_topic(self, topic: str):
         
         """
