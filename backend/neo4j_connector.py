@@ -20,6 +20,31 @@ class Neo4jConnector:
         """
         self.driver.close()
         
+    def get_top_tweets(self, metric: str, limit: int):
+        """
+        Retrieve top tweets ordered by likes or retweets.
+
+        Args:
+            metric (str): 'likes' or 'retweets'
+            limit (int): number of top tweets to return
+
+        Returns:
+            list: tweets with id, content, likes, retweets, date, and topic
+        """
+        assert metric in ["likes", "retweets"]
+        query = f"""
+        MATCH (t:Tweet)
+        WHERE t.{metric} IS NOT NULL
+        RETURN t.text AS content, t.likes AS likes, t.retweets AS retweets,
+            t.date AS date, t.topic AS topic
+        ORDER BY t.{metric} DESC
+        LIMIT $limit
+        """
+        with self.driver.session() as session:
+            result = session.run(query, limit=limit)
+            return result.data()
+
+       
     def get_topic_trend_by_year(self, year: str):
         """
         Retrieve the topic trend for a specific year from the Neo4j database.

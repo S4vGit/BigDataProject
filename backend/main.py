@@ -53,3 +53,9 @@ async def get_likes_by_year(topic: str = Query(..., description="Topic to analyz
 def topic_trend_by_year(year: str = Query(..., min_length=4, max_length=4)):
     data = connector.get_topic_trend_by_year(year)
     return {"data": data}
+
+@app.get("/top-tweets")
+def get_top_tweets(metric: str = Query("likes", enum=["likes", "retweets"]), limit: int = 5):
+    data = connector.get_top_tweets(metric, limit)
+    return {"data": data}
+
