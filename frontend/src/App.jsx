@@ -8,6 +8,7 @@ import LikesByYearChart from './components/LikesByYearChart';
 import TopicTrendChart from './components/TopicTrendChart';
 import TopTweets from './components/TopTweets';
 import AverageSentimentChart from "./components/AverageSentimentChart";
+import SentimentPerYear from './components/SentimentPerYear';
 
 
 
@@ -113,17 +114,19 @@ const App = () => {
         <LikesByYearChart topic={selectedTopic} />
       </div>
 
-      {/* GRAFICO TREND TOPIC PER ANNO */}
+      {/* GRAFICO TREND TOPIC PER ANNO  */}
       <div className="card p-4 shadow mt-5" style={{ maxWidth: '700px', width: '100%' }} data-aos="fade-up">
-        <h5>Topic Trends per Month </h5>
         <TopicTrendChart />
       </div>
+      
 
       <AnimatePresence mode="wait">
         <TopTweets key="top-tweets" />
       </AnimatePresence>
 
       <AverageSentimentChart/>
+
+      <SentimentPerYear />
         
     </div>
   );

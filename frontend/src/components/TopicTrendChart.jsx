@@ -11,7 +11,6 @@ const TopicTrendChart = () => {
       const res = await fetch(`http://localhost:8000/topic-trend-by-year?year=${year}`);
       const json = await res.json();
 
-      // Aggrega per mese e topic
       const topicSet = new Set();
       const grouped = {};
       json.data.forEach(({ month, topic, count }) => {
@@ -24,13 +23,12 @@ const TopicTrendChart = () => {
       const formatted = Object.entries(grouped)
         .sort(([a], [b]) => parseInt(a, 10) - parseInt(b, 10))
         .map(([month, topicsObj]) => {
-            const entry = { month };
-            allTopics.forEach(topic => {
+          const entry = { month };
+          allTopics.forEach(topic => {
             entry[topic] = topicsObj[topic] || 0;
-            });
-            return entry;
+          });
+          return entry;
         });
-
 
       setTopics(allTopics);
       setData(formatted);
@@ -40,28 +38,23 @@ const TopicTrendChart = () => {
   }, [year]);
 
   return (
-    <div className="container my-5">
-      <h3 className="mb-3">Topic Trend per Month in {year}</h3>
+    <div>
+      <h5 className="mb-3">Topic Trend per Month in {year}</h5>
       <select className="form-select mb-4" value={year} onChange={(e) => setYear(e.target.value)}>
-        <option value="2012">2012</option>
-        <option value="2013">2013</option>
-        <option value="2014">2014</option>
-        <option value="2015">2015</option>
-        <option value="2016">2016</option>
-        <option value="2017">2017</option>
-        <option value="2018">2018</option>
-        <option value="2019">2019</option>
+        {[...Array(8)].map((_, i) => {
+          const y = 2012 + i;
+          return <option key={y} value={y}>{y}</option>;
+        })}
       </select>
-      <ResponsiveContainer width="100%" height={400}>
+      <ResponsiveContainer width="100%" height={300}>
         <LineChart data={data}>
           <XAxis
             dataKey="month"
             tickFormatter={(month) => {
-                const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", 
-                                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-                return monthNames[parseInt(month, 10) - 1] || month;
+              const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+              return monthNames[parseInt(month, 10) - 1] || month;
             }}
-
           />
           <YAxis />
           <Tooltip />
