@@ -13,7 +13,7 @@ import {
 
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend);
 
-const LikesByYearChart = ({ topic }) => {
+const A1_LikesTopicYear = ({ topic }) => {
   const [data, setData] = useState(null);
 
   useEffect(() => {
@@ -52,4 +52,4 @@ const LikesByYearChart = ({ topic }) => {
   );
 };
 
-export default LikesByYearChart;
+export default A1_LikesTopicYear;

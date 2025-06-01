@@ -4,7 +4,7 @@ import AOS from 'aos';
 import 'aos/dist/aos.css';
 import { AnimatePresence } from 'framer-motion';
 
-import LikesByYearChart from './components/LikesByYearChart'; 
+import A1_LikesTopicYear from './components/A1_LikesTopicYear'; 
 import TopicTrendChart from './components/TopicTrendChart';
 import TopTweets from './components/TopTweets';
 import AverageSentimentChart from "./components/AverageSentimentChart";
@@ -117,7 +117,7 @@ const App = () => {
           </select>
         </div>
         
-        <LikesByYearChart topic={selectedTopic} />
+        <A1_LikesTopicYear topic={selectedTopic} />
       </div>
 
       {/* GRAFICO TREND TOPIC PER ANNO  */}
