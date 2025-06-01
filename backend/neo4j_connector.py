@@ -19,6 +19,28 @@ class Neo4jConnector:
         Close the Neo4j database connection.
         """
         self.driver.close()
+        
+    def get_topic_trend_by_year(self, year: str):
+        """
+        Retrieve the topic trend for a specific year from the Neo4j database.
+        
+        Args:
+            year (str): The year to filter tweets by, in the format 'YYYY'.
+            
+        Returns:
+            list: A list of dictionaries containing the month, topic, and count of tweets for that topic.
+        """
+        
+        query = """
+        MATCH (t:Tweet)
+        WHERE t.date STARTS WITH $year AND t.topic IS NOT NULL
+        RETURN substring(t.date, 5, 2) AS month, t.topic AS topic, count(*) AS count
+        ORDER BY month, count DESC
+        """
+        with self.driver.session() as session:
+            result = session.run(query, year=year)
+            records = result.data()
+            return records
 
     def get_tweets_by_author_topic(self, author: str, topic: str):
         """
@@ -46,29 +68,6 @@ class Neo4jConnector:
             )
             return [record.data() for record in result]
 
-
-    def get_tweets_by_author(self, author: str):
-        """
-        Retrieve tweets by a specific author from the Neo4j database.
-            
-        Args:
-            author (str): The author's name to search for.
-            
-        Returns:
-            list: A list of tweets by the specified author, each represented as a dictionary.
-        """
-        if author.lower() != "obama":
-            return ValueError("Author not found.")
-
-        with self.driver.session() as session:
-            result = session.run(
-                """
-                MATCH (t:Tweet)
-                RETURN t.text AS text, t.date AS date, t.sentiment AS sentiment
-                ORDER BY t.date DESC
-                """,
-            )
-            return [record.data() for record in result]
         
     def get_likes_by_year_for_topic(self, topic: str):
         

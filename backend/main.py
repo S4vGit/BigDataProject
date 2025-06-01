@@ -48,3 +48,8 @@ async def get_likes_by_year(topic: str = Query(..., description="Topic to analyz
         return {"topic": topic, "data": data}
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
+    
+@app.get("/topic-trend-by-year")
+def topic_trend_by_year(year: str = Query(..., min_length=4, max_length=4)):
+    data = connector.get_topic_trend_by_year(year)
+    return {"data": data}
