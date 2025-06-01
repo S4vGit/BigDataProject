@@ -42,29 +42,29 @@ async def analyze_tweet(data: TweetRequest):
     return result
 
 @app.get("/analytics/likes-by-year")
-async def get_likes_by_year(topic: str = Query(..., description="Topic to analyze")):
+async def A1_get_likes_by_year(topic: str = Query(..., description="Topic to analyze")):
     try:
-        data = connector.get_likes_by_year_for_topic(topic)
+        data = connector.A1_get_likes_by_year_for_topic(topic)
         return {"topic": topic, "data": data}
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
     
 @app.get("/topic-trend-by-year")
-def topic_trend_by_year(year: str = Query(..., min_length=4, max_length=4)):
-    data = connector.get_topic_trend_by_year(year)
+def A2_topic_trend_by_year(year: str = Query(..., min_length=4, max_length=4)):
+    data = connector.A2_get_topic_trend_by_month_year(year)
     return {"data": data}
 
 @app.get("/top-tweets")
-def get_top_tweets(metric: str = Query("likes", enum=["likes", "retweets"]), limit: int = 5):
-    data = connector.get_top_tweets(metric, limit)
+def A3_get_top_tweets(metric: str = Query("likes", enum=["likes", "retweets"]), limit: int = 5):
+    data = connector.A3_get_top_tweets(metric, limit)
     return {"data": data}
 
 @app.get("/analytics/sentiment-by-topic")
-def sentiment_by_topic():
-    data = connector.get_average_sentiment_by_topic()
+def A4_sentiment_by_topic():
+    data = connector.A4_get_average_sentiment_by_topic()
     return {"data": data}
 
 @app.get("/sentiment-per-year")
-def sentiment_per_year():
-    data = connector.get_average_sentiment_per_year()
+def A5_sentiment_per_year():
+    data = connector.A5_get_average_sentiment_per_year()
     return {"data": data}
