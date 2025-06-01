@@ -1,46 +1,41 @@
-// FIRST PART: node "Tweet" creation
-LOAD CSV WITH HEADERS FROM 'file:///ds_obama_final.csv' AS row
-
+// PRIMA PARTE: creazione nodo "Tweet"
+LOAD CSV WITH HEADERS FROM 'file:///dataset.csv' AS row
 MERGE (t:Tweet {
   date: row.Date,
-  text: row.`Tweet-text`
+  text: row.`Text`
 })
 SET t.retweets = toInteger(row.Retweets),
     t.likes = toInteger(row.Likes),
     t.topic = row.topic,
     t.confidence = toFloat(row.confidence),
     t.sentiment = row.sentiment,
-    t.sentiment_confidence = toFloat(row.sentiment_confidence);
-	
-// SECOND PART: node "Entity" creation and relation "MENTIONS" creation
-	
-LOAD CSV WITH HEADERS FROM 'file:///ds_obama_final.csv' AS row
+    t.sentiment_confidence = toFloat(row.sentiment_confidence),
+    t.author = row.Author;
 
-// Pulizia iniziale (rimuove parentesi quadre esterne e dividi ogni entità con '],[')
-WITH row, replace(replace(replace(row.entities, "[[", ""), "]]", ""), "'],['", "|") AS cleaned
 
-// Rimuove eventuali altri caratteri non necessari
-WITH row, replace(replace(cleaned, "[", ""), "]", "") AS flat
+// SECONDA PARTE: creazione nodi "Entity" e relazioni "MENTIONS"
+LOAD CSV WITH HEADERS FROM 'file:///dataset.csv' AS row
 
-// Splitta tra le entità usando il separatore personalizzato "|"
-WITH row, split(flat, "|") AS entityStrings
+// Pulizia della colonna entities per ottenere una lista piatta
+WITH row, replace(replace(replace(replace(replace(replace(row.entities, "[[", ""), "]]", ""), "[", ""), "]", ""), "'", ""), "\"", "") AS cleaned
 
-UNWIND entityStrings AS eString
+// Splitting in una lista di parti: entity1, type1, entity2, type2, ...
+WITH row, split(cleaned, ", ") AS parts
 
-// Ora ogni eString è del tipo "'NBA' 'ORG'"
-WITH row, trim(eString) AS raw
+// Raggruppamento in coppie {name, type}
+WITH row, [i IN range(0, size(parts)-1) 
+           WHERE i % 2 = 0 AND i + 1 < size(parts) 
+           | {name: trim(parts[i]), type: trim(parts[i+1])}] AS entityTuples
 
-// Splitta tra nome e tipo usando lo spazio
-WITH row, split(raw, "' '") AS parts
-WHERE size(parts) = 2  // scarta quelle malformate
+UNWIND entityTuples AS entity
 
-// Pulisce i singoli campi
-WITH row, replace(parts[0], "'", "") AS name, replace(parts[1], "'", "") AS type
-WHERE name <> "" AND type <> ""
+// Evita entità vuote
+WITH row, entity
+WHERE entity.name IS NOT NULL AND entity.type IS NOT NULL AND entity.name <> "" AND entity.type <> ""
 
-MERGE (e:Entity {name: name, type: type})
+MERGE (e:Entity {name: entity.name, type: entity.type})
 
-// Collega l'entità al tweet
+// Collegamento del tweet corrispondente
 WITH row, e
-MATCH (t:Tweet {date: row.Date, text: row.`Tweet-text`})
+MATCH (t:Tweet {date: row.Date, text: row.`Text`})
 MERGE (t)-[:MENTIONS]->(e);
