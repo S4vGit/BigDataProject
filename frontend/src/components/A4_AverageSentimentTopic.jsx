@@ -11,7 +11,7 @@ import {
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
-const AverageSentimentChart = () => {
+const A4_AverageSentimentTopic = () => {
   const [chartData, setChartData] = useState(null);
 
   useEffect(() => {
@@ -66,4 +66,4 @@ const AverageSentimentChart = () => {
   );
 };
 
-export default AverageSentimentChart;
+export default A4_AverageSentimentTopic;
