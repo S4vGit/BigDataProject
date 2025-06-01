@@ -43,8 +43,7 @@ class Neo4jConnector:
         with self.driver.session() as session:
             result = session.run(query, limit=limit)
             return result.data()
-
-     
+ 
     def get_average_sentiment_by_topic(self):
         """
         Retrieve the average sentiment for each topic from the Neo4j database.
@@ -145,4 +144,3 @@ class Neo4jConnector:
                 topic=topic
             )
             return [{"year": record["year"], "likes": record["total_likes"]} for record in result]
-
