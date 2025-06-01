@@ -25,6 +25,10 @@ const TopTweets = () => {
         transition={{ duration: 0.6 }}
     >
         <h5 className="mb-3">Top {limit} Tweet per {metric === 'likes' ? 'Like' : 'Retweet'}</h5>
+        <p className="text-muted mb-3">
+            This table shows the top tweets ranked by the number of likes or retweets. You can switch between the two metrics and choose how many tweets to display.
+            It helps identify the most engaging or viral tweets over time, giving insight into which topics or messages resonate most with the audience.
+        </p>
 
         <div className="d-flex mb-3 gap-3">
         <select className="form-select w-auto" value={metric} onChange={(e) => setMetric(e.target.value)}>
