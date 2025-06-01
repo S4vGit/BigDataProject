@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { motion } from "framer-motion";
 
-const SentimentPerYear = () => {
+const A5_AverageSentimentYear = () => {
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -40,4 +40,4 @@ const SentimentPerYear = () => {
   );
 };
 
-export default SentimentPerYear;
+export default A5_AverageSentimentYear;

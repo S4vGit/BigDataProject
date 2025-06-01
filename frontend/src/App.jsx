@@ -6,9 +6,9 @@ import { AnimatePresence } from 'framer-motion';
 
 import A1_LikesTopicYear from './components/A1_LikesTopicYear'; 
 import A2_TopicTrendMonth from './components/A2_TopicTrendMonth';
-import TopTweets from './components/A3_TopTweets';
+import A3_TopTweets from './components/A3_TopTweets';
 import A4_AverageSentimentTopic from "./components/A4_AverageSentimentTopic";
-import SentimentPerYear from './components/SentimentPerYear';
+import A5_AverageSentimentYear from './components/A5_AverageSentimentYear';
 
 
 
@@ -127,12 +127,12 @@ const App = () => {
       
 
       <AnimatePresence mode="wait">
-        <TopTweets key="top-tweets" />
+        <A3_TopTweets key="top-tweets" />
       </AnimatePresence>
 
       <A4_AverageSentimentTopic/>
 
-      <SentimentPerYear />
+      <A5_AverageSentimentYear />
         
     </div>
   );

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 
-const TopTweets = () => {
+const A3_TopTweets = () => {
   const [metric, setMetric] = useState('likes');
   const [limit, setLimit] = useState(5);
   const [data, setData] = useState([]);
@@ -72,4 +72,4 @@ const TopTweets = () => {
 
 };
 
-export default TopTweets;
+export default A3_TopTweets;
