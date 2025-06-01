@@ -123,7 +123,8 @@ const App = () => {
         <TopTweets key="top-tweets" />
       </AnimatePresence>
 
-      <AverageSentimentChart/>
+      <AverageSentimentChart key="/analytics/sentiment-by-topic"/>
+        
     </div>
   );
 };
