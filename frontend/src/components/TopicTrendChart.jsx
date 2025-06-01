@@ -40,6 +40,13 @@ const TopicTrendChart = () => {
   return (
     <div>
       <h5 className="mb-3">Topic Trend per Month in {year}</h5>
+      <p className="text-muted mb-3">
+        This chart displays the monthly distribution of tweet topics for a selected year. 
+        It allows users to observe how different topics vary in prominence throughout the year, 
+        helping identify seasonal patterns or bursts of public interest in specific themes.
+      </p>
+
+
       <select className="form-select mb-4" value={year} onChange={(e) => setYear(e.target.value)}>
         {[...Array(8)].map((_, i) => {
           const y = 2012 + i;
