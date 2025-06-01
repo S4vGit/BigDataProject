@@ -5,7 +5,7 @@ import 'aos/dist/aos.css';
 import { AnimatePresence } from 'framer-motion';
 
 import A1_LikesTopicYear from './components/A1_LikesTopicYear'; 
-import TopicTrendChart from './components/TopicTrendChart';
+import TopicTrendChart from './components/A2_TopicTrendMonth';
 import TopTweets from './components/TopTweets';
 import AverageSentimentChart from "./components/AverageSentimentChart";
 import SentimentPerYear from './components/SentimentPerYear';
