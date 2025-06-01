@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-const TopicTrendChart = () => {
+const A2_TopicTrendMonth = () => {
   const [year, setYear] = useState('2019');
   const [data, setData] = useState([]);
   const [topics, setTopics] = useState([]);
@@ -82,4 +82,4 @@ const TopicTrendChart = () => {
   );
 };
 
-export default TopicTrendChart;
+export default A2_TopicTrendMonth;

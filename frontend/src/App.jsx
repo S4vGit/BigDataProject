@@ -5,7 +5,7 @@ import 'aos/dist/aos.css';
 import { AnimatePresence } from 'framer-motion';
 
 import A1_LikesTopicYear from './components/A1_LikesTopicYear'; 
-import TopicTrendChart from './components/A2_TopicTrendMonth';
+import A2_TopicTrendMonth from './components/A2_TopicTrendMonth';
 import TopTweets from './components/A3_TopTweets';
 import A4_AverageSentimentTopic from "./components/A4_AverageSentimentTopic";
 import SentimentPerYear from './components/SentimentPerYear';
@@ -122,7 +122,7 @@ const App = () => {
 
       {/* GRAFICO TREND TOPIC PER ANNO  */}
       <div className="card p-4 shadow mt-5" style={{ maxWidth: '700px', width: '100%' }} data-aos="fade-up">
-        <TopicTrendChart />
+        <A2_TopicTrendMonth />
       </div>
       
 
