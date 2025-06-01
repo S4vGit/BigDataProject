@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import './App.css';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
+import { AnimatePresence } from 'framer-motion';
 
 import LikesByYearChart from './components/LikesByYearChart'; 
 import TopicTrendChart from './components/TopicTrendChart';
+import TopTweets from './components/TopTweets';
 
 
 
@@ -116,7 +118,9 @@ const App = () => {
         <TopicTrendChart />
       </div>
 
-
+      <AnimatePresence mode="wait">
+        <TopTweets key="top-tweets" />
+      </AnimatePresence>
     </div>
   );
 };

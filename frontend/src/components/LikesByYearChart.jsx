@@ -28,7 +28,7 @@ const LikesByYearChart = ({ topic }) => {
             {
               label: `Likes per Year for "${topic}"`,
               data: likes,
-              borderColor: "rgba(75,192,192,1)",
+              borderColor: "#0d6efd",
               fill: false,
               tension: 0.3
             }

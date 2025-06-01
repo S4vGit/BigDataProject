@@ -40,3 +40,8 @@
 .read-the-docs {
   color: #888;
 }
+
+.my-table-thead {
+  background-color: #0d6efd !important;
+  color: white !important;
+}

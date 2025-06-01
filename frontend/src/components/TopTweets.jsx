@@ -1,0 +1,71 @@
+import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+
+const TopTweets = () => {
+  const [metric, setMetric] = useState('likes');
+  const [limit, setLimit] = useState(5);
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    const fetchTopTweets = async () => {
+      const res = await fetch(`http://localhost:8000/top-tweets?metric=${metric}&limit=${limit}`);
+      const json = await res.json();
+      setData(json.data);
+    };
+    fetchTopTweets();
+  }, [metric, limit]);
+
+  return (
+    <motion.div
+        className="card p-4 shadow mt-5"
+        style={{ maxWidth: '700px', width: '100%' }}
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -50 }} 
+        transition={{ duration: 0.6 }}
+    >
+        <h5 className="mb-3">Top {limit} Tweet per {metric === 'likes' ? 'Like' : 'Retweet'}</h5>
+
+        <div className="d-flex mb-3 gap-3">
+        <select className="form-select w-auto" value={metric} onChange={(e) => setMetric(e.target.value)}>
+            <option value="likes">Like</option>
+            <option value="retweets">Retweet</option>
+        </select>
+
+        <select className="form-select w-auto" value={limit} onChange={(e) => setLimit(parseInt(e.target.value))}>
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+        </select>
+        </div>
+
+        <div className="table-responsive">
+        <table className="table table-bordered table-hover align-middle">
+            <thead className="table-primary">
+            <tr>
+                <th>Date</th>
+                <th style={{ maxWidth: '300px' }}>Tweet</th>
+                <th>Topic</th>
+                <th>#{metric.charAt(0).toUpperCase() + metric.slice(1)}</th>
+            </tr>
+            </thead>
+            <tbody>
+            {data.map((tweet, idx) => (
+                <tr key={idx}>
+                <td>{tweet.date}</td>
+                <td style={{ maxWidth: '300px', whiteSpace: 'normal', wordWrap: 'break-word' }}>
+                {tweet.content}
+                </td>
+                <td>{tweet.topic}</td>
+                <td>{tweet[metric]}</td>
+                </tr>
+            ))}
+            </tbody>
+        </table>
+        </div>
+    </motion.div>
+    );
+
+};
+
+export default TopTweets;
