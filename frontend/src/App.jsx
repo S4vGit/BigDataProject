@@ -1,7 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
 
 import LikesByYearChart from './components/LikesByYearChart'; 
+import TopicTrendChart from './components/TopicTrendChart';
+
+
 
 const App = () => {
   const [tweet, setTweet] = useState('');
@@ -10,6 +15,10 @@ const App = () => {
   const [response, setResponse] = useState(null);
 
   const [selectedTopic, setSelectedTopic] = useState('USA');
+
+  useEffect(() => {
+  AOS.init({ duration: 1000 });
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -89,7 +98,7 @@ const App = () => {
       </div>
 
       {/* GRAFICO LIKES PER TOPIC */}
-      <div className="card p-4 shadow mt-5" style={{ maxWidth: '700px', width: '100%' }}>
+      <div className="card p-4 shadow mt-5" style={{ maxWidth: '700px', width: '100%' }} data-aos="fade-up">
         <div className="mb-3">
           <h5>Like Topic per Year</h5>
           <select className="form-select" value={selectedTopic} onChange={(e) => setSelectedTopic(e.target.value)}>
@@ -99,6 +108,12 @@ const App = () => {
           </select>
         </div>
         <LikesByYearChart topic={selectedTopic} />
+      </div>
+
+      {/* GRAFICO TREND TOPIC PER ANNO */}
+      <div className="card p-4 shadow mt-5" style={{ maxWidth: '700px', width: '100%' }} data-aos="fade-up">
+        <h5>Topic Trends per Month </h5>
+        <TopicTrendChart />
       </div>
 
 
