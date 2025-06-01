@@ -7,6 +7,7 @@ import { AnimatePresence } from 'framer-motion';
 import LikesByYearChart from './components/LikesByYearChart'; 
 import TopicTrendChart from './components/TopicTrendChart';
 import TopTweets from './components/TopTweets';
+import AverageSentimentChart from "./components/AverageSentimentChart";
 
 
 
@@ -121,6 +122,8 @@ const App = () => {
       <AnimatePresence mode="wait">
         <TopTweets key="top-tweets" />
       </AnimatePresence>
+
+      <AverageSentimentChart/>
     </div>
   );
 };
