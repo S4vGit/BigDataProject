@@ -41,13 +41,13 @@ const TopTweets = () => {
 
         <div className="table-responsive">
         <table className="table table-bordered table-hover align-middle">
-            <thead className="table-primary">
-            <tr>
-                <th>Date</th>
-                <th style={{ maxWidth: '300px' }}>Tweet</th>
-                <th>Topic</th>
-                <th>#{metric.charAt(0).toUpperCase() + metric.slice(1)}</th>
-            </tr>
+            <thead className="custom-thead">
+                <tr>
+                    <th>Date</th>
+                    <th style={{ maxWidth: '300px' }}>Tweet</th>
+                    <th>Topic</th>
+                    <th>#{metric.charAt(0).toUpperCase() + metric.slice(1)}</th>
+                </tr>
             </thead>
             <tbody>
             {data.map((tweet, idx) => (
