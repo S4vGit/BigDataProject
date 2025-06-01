@@ -63,3 +63,8 @@ def get_top_tweets(metric: str = Query("likes", enum=["likes", "retweets"]), lim
 def sentiment_by_topic():
     data = connector.get_average_sentiment_by_topic()
     return {"data": data}
+
+@app.get("/sentiment-per-year")
+def sentiment_per_year():
+    data = connector.get_average_sentiment_per_year()
+    return {"data": data}

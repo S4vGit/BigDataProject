@@ -144,3 +144,24 @@ class Neo4jConnector:
                 topic=topic
             )
             return [{"year": record["year"], "likes": record["total_likes"]} for record in result]
+
+    def get_average_sentiment_per_year(self):
+        """
+        Retrieve the average sentiment per year from the Neo4j database.
+        
+        Returns:
+            list: A list of dictionaries containing the year and its average sentiment score.
+        """
+        with self.driver.session() as session:
+            result = session.run("""
+                MATCH (t:Tweet)
+                WITH toInteger(split(t.date, "/")[0]) AS year,
+                    CASE t.sentiment
+                        WHEN "positive" THEN 1.0 * t.sentiment_confidence
+                        WHEN "negative" THEN -1.0 * t.sentiment_confidence
+                        ELSE 0
+                    END AS sentiment_score
+                RETURN year, avg(sentiment_score) AS avg_sentiment
+                ORDER BY year
+            """)
+            return [{"year": record["year"], "avg_sentiment": record["avg_sentiment"]} for record in result]
