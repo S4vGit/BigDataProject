@@ -24,6 +24,9 @@ const SentimentPerYear = () => {
       transition={{ duration: 0.5 }}
     >
       <h5 className="mb-4">Average Sentiment per Year</h5>
+      <p className="text-muted mb-4">
+        This chart displays the average sentiment of tweets over the years. Each year's sentiment is computed based on the confidence-weighted sentiment score of tweets — positive tweets contribute positively, negative ones negatively, and neutral ones are counted as zero. It helps identify how the general tone or public mood expressed in tweets has changed over time. By analyzing sentiment trends, users can understand shifts in public attitude or emotional tone year by year, revealing how sentiment might correlate with real-world events or societal changes.
+      </p>
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
