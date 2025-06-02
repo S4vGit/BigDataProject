@@ -27,7 +27,7 @@ async def analyze_tweet(data: TweetRequest):
     topic, confidence = classify_topic(data.tweet)
     print(f"[DEBUG] Topic extracted: {topic} ({confidence:.2%})")
     
-    df = connector.get_tweets_by_author_topic(data.author, topic)
+    df = connector.get_tweets_by_author_topic(topic)
     df = pd.DataFrame(df)
     
     # If no tweets are found for the specified author and topic, return a message
@@ -36,10 +36,23 @@ async def analyze_tweet(data: TweetRequest):
             "result": "ERROR: No tweets found for this author and topic.",
         }
     
-    result = analyze_tweet_with_context(data.tweet, data.author, df)
-    result["topic"] = topic
-    result["topic_confidence"] = round(confidence * 100, 2)
-    return result
+    analysis_output = analyze_tweet_with_context(data.tweet, df) 
+    
+    # Verifica che il risultato sia un dict e abbia le chiavi attese
+    if "result" not in analysis_output or "explanation" not in analysis_output:
+        return {
+            "result": "ERROR: LLM analysis output format invalid.",
+            "topic": topic,
+            "topic_confidence": round(confidence * 100, 2)
+        }
+
+    return {
+        "predicted_author": analysis_output["result"], # Nuovo nome della chiave per chiarezza
+        "explanation": analysis_output["explanation"], # Nuova chiave per l'spiegazione
+        "confidence": analysis_output["confidence"], # Questa è la confidence fissa, se non l'hai calcolata
+        "topic": topic,
+        "topic_confidence": round(confidence * 100, 2)
+    }
 
 @app.get("/analytics/topics")
 async def A_get_topics(author: str = Query(...)):
