@@ -4,15 +4,16 @@ import { motion } from "framer-motion";
 
 const A5_AverageSentimentYear = () => {
   const [data, setData] = useState([]);
+  const [author, setAuthor] = useState("Obama"); 
 
   useEffect(() => {
     const fetchSentiment = async () => {
-      const res = await fetch("http://localhost:8000/sentiment-per-year");
+      const res = await fetch(`http://localhost:8000/sentiment-per-year?author=${author}`);
       const json = await res.json();
       setData(json.data);
     };
     fetchSentiment();
-  }, []);
+  }, [author]);
 
   return (
     <motion.div
@@ -23,10 +24,29 @@ const A5_AverageSentimentYear = () => {
       exit={{ opacity: 0, y: -40 }}
       transition={{ duration: 0.5 }}
     >
-      <h5 className="mb-4">Average Sentiment per Year</h5>
+      <h5 className="mb-0">Average Sentiment per Year ({author})</h5>
+      
+
       <p className="text-muted mb-4">
-        This chart displays the average sentiment of tweets over the years. Each year's sentiment is computed based on the confidence-weighted sentiment score of tweets — positive tweets contribute positively, negative ones negatively, and neutral ones are counted as zero. It helps identify how the general tone or public mood expressed in tweets has changed over time. By analyzing sentiment trends, users can understand shifts in public attitude or emotional tone year by year, revealing how sentiment might correlate with real-world events or societal changes.
+        This chart displays the average sentiment of tweets over the years. 
+        Each year's sentiment is computed based on the confidence-weighted sentiment score of tweets — positive tweets contribute positively, negative ones negatively, and neutral ones are counted as zero. 
+        It helps identify how the general tone or public mood expressed in tweets has changed over time. 
+        By analyzing sentiment trends, users can understand shifts in public attitude or emotional tone year by year, revealing how sentiment might correlate with real-world events or societal changes.
       </p>
+
+      <div className="mb-4">
+      <label htmlFor="author-select" className="form-label">Select Author:</label>
+      <select
+        id="author-select"
+        className="form-select"
+        value={author}
+        onChange={(e) => setAuthor(e.target.value)}
+      >
+        <option value="Obama">Barack Obama</option>
+        <option value="Musk">Elon Musk</option>
+      </select>
+    </div>
+
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
@@ -41,3 +61,4 @@ const A5_AverageSentimentYear = () => {
 };
 
 export default A5_AverageSentimentYear;
+
