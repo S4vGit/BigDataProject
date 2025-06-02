@@ -1,15 +1,14 @@
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
-from schemas import TweetRequest, TweetResponse
+from schemas import TweetRequest 
 import pandas as pd
 from neo4j_connector import Neo4jConnector
 import json
-import asyncio
 import faiss
 
 from services.topic_extraction import classify_topic
-from services.tweet_analysis import analyze_tweet_with_context
+from services.tweet_analysis import stream_llm_response, encoder 
 
 app = FastAPI()
 connector = Neo4jConnector()
@@ -25,56 +24,109 @@ app.add_middleware(
 
 
 @app.post("/analyze")
-async def analyze_tweet(data: TweetRequest): # Mantiene async per FastAPI, ma la logica interna sarà sincrona
+async def analyze_tweet(data: TweetRequest):
     topic, confidence = classify_topic(data.tweet)
     print(f"[DEBUG] Topic extracted: {topic} ({confidence:.2%})")
     
     df = connector.get_tweets_by_author_topic(topic)
     df = pd.DataFrame(df)
     
-    # If no tweets are found for the specified author and topic, return a message
     if df.empty:
         return JSONResponse(status_code=404, content={
             "predicted_author": "ERROR",
-            "explanation": "No tweets found for this topic.",
+            "explanation": "No tweets found for this topic. Please try a different tweet.",
             "confidence": 0.0,
             "topic": topic,
-            "topic_confidence": round(confidence * 100, 2)
+            "topic_confidence": round(confidence * 100, 2),
+            "streaming": False
         })
         
-    # Context embedding and search (Questa logica è ora inglobata in analyze_tweet_with_context)
-    # Rimuovi tutto il blocco FAISS da qui, perché è già in tweet_analysis.py
-    # corpus_embeddings = encoder.encode(df["text"].tolist(), convert_to_numpy=True)
-    # ...
-    # query_embedding = encoder.encode([data.tweet])
-    # ...
-    # context_str = "\n".join(context_tweets_with_authors)
-    # print(f"[DEBUG] Context tweets for LLM: {context_str}")
-    # prompt = f"""...""" # Rimuovi anche la costruzione del prompt
+    # Context embedding and search
+    corpus_embeddings = encoder.encode(df["text"].tolist(), convert_to_numpy=True)
+    dimension = corpus_embeddings.shape[1]
+    index = faiss.IndexFlatL2(dimension)
+    index.add(corpus_embeddings)
 
-    # Chiamata alla funzione di analisi (ora sincrona)
-    # Visto che analyze_tweet_with_context è sincrona, la chiamiamo direttamente.
-    # FastAPI la gestirà bloccando l'event loop finché non torna, ma va bene per singole richieste.
-    analysis_output = analyze_tweet_with_context(data.tweet, df) 
+    query_embedding = encoder.encode([data.tweet])
+    distances, indices = index.search(query_embedding, 5)
     
-    # Verifica che il risultato sia un dict e abbia le chiavi attese
-    if "result" not in analysis_output or "explanation" not in analysis_output:
-        return JSONResponse(status_code=500, content={ # Status 500 per errori interni
-            "predicted_author": "ERROR",
-            "explanation": "LLM analysis output format invalid.",
-            "confidence": 0.0, # Puoi impostare una confidence di 0
-            "topic": topic,
-            "topic_confidence": round(confidence * 100, 2)
-        })
+    # Prepare context tweets with authors
+    context_tweets_with_authors = []
+    for idx in indices[0]:
+        t_text = df.iloc[idx]["text"]
+        t_author = df.iloc[idx]["author"]
+        context_tweets_with_authors.append(f'- "{t_text}" (Author: {t_author})')
+    
+    context_str = "\n".join(context_tweets_with_authors)
+    print(f"[DEBUG] Context tweets for LLM: {context_str}")
+    
+    prompt = f"""I will provide you with a list of tweets.
 
-    # Restituisci la risposta JSON completa
-    return {
-        "predicted_author": analysis_output["result"],
-        "explanation": analysis_output["explanation"],
-        "confidence": analysis_output["confidence"],
-        "topic": topic,
-        "topic_confidence": round(confidence * 100, 2)
-    }
+Tweets:
+{context_str}
+
+Now, consider this new tweet:
+
+"{data.tweet}"
+Question: Could this tweet have been written by Obama, Musk or neither?
+Answer and give a brief explanation."""
+
+    async def generate_llm_response():
+        full_explanation = ""
+        
+        initial_data = {
+            "explanation": full_explanation, # Initial empty explanation
+            "streaming": True # Indicates that streaming will start
+        }
+        yield json.dumps(initial_data) + "\n"
+
+        # Stream LLM response
+        async for text_chunk in stream_llm_response(prompt):
+            if "ERROR" in text_chunk: 
+                final_error_data = {
+                    "predicted_author": "ERROR",
+                    "explanation": text_chunk,
+                    "confidence": 0.0,
+                    "topic": topic,
+                    "topic_confidence": round(confidence * 100, 2),
+                    "streaming": False # End streaming
+                }
+                yield json.dumps(final_error_data) + "\n"
+                print(f"[FINAL RESULT] ERROR: {text_chunk} (Topic: {topic}, Topic Confidence: {round(confidence * 100, 2)}%)")
+                return 
+
+            full_explanation += text_chunk
+            # Send a partial update with the current explanation
+            partial_data = {
+                "explanation": full_explanation,
+                "streaming": True # Keep streaming status
+            }
+            yield json.dumps(partial_data) + "\n"
+
+        # Final result processing
+        response_lower = full_explanation.lower()
+        if "obama" in response_lower:
+            final_predicted_author = "Obama"
+        elif "musk" in response_lower or "elon" in response_lower:
+            final_predicted_author = "Musk"
+        else:
+            final_predicted_author = "neither" # Default if no author found
+
+        final_data = {
+            "predicted_author": final_predicted_author,
+            "explanation": full_explanation,
+            "confidence": 100.0, 
+            "topic": topic,
+            "topic_confidence": round(confidence * 100, 2),
+            "streaming": False # States that streaming is done
+        }
+        yield json.dumps(final_data) + "\n" # Sending final result
+
+        # Log the final result
+        print(f"[FINAL RESULT] Predicted Author: {final_predicted_author}, LLM Confidence: {100.0}%, Topic: {topic}, Topic Confidence: {round(confidence * 100, 2)}%")
+
+
+    return StreamingResponse(generate_llm_response(), media_type="application/x-ndjson")
 
 @app.get("/analytics/topics")
 async def A_get_topics(author: str = Query(...)):
