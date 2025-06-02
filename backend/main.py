@@ -41,6 +41,22 @@ async def analyze_tweet(data: TweetRequest):
     result["topic_confidence"] = round(confidence * 100, 2)
     return result
 
+@app.get("/analytics/topics")
+async def A_get_topics(author: str = Query(...)):
+    try:
+        topics = connector.A_get_topics_by_author(author)
+        return {"author": author, "topics": topics}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+@app.get("/analytics/years")
+async def A_get_years(author: str = Query("All")):
+    try:
+        years = connector.A_get_years_by_author(author)
+        return {"author": author, "years": years}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
 @app.get("/analytics/likes-by-year")
 async def A1_get_likes_by_year(topic: str = Query(..., description="Topic to analyze"), author: str = Query(..., description="Author to filter by")):
     try:
@@ -49,17 +65,9 @@ async def A1_get_likes_by_year(topic: str = Query(..., description="Topic to ana
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
     
-@app.get("/analytics/topics")
-async def A1_get_topics(author: str = Query(...)):
-    try:
-        topics = connector.A1_get_topics_by_author(author)
-        return {"author": author, "topics": topics}
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
-    
 @app.get("/topic-trend-by-year")
-def A2_topic_trend_by_year(year: str = Query(..., min_length=4, max_length=4)):
-    data = connector.A2_get_topic_trend_by_month_year(year)
+def A2_topic_trend_by_year(year: str = Query(..., min_length=4, max_length=4), author: str = Query("All")):
+    data = connector.A2_get_topic_trend_by_month_year(year, author)
     return {"data": data}
 
 @app.get("/top-tweets")

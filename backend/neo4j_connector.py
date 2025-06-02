@@ -46,6 +46,60 @@ class Neo4jConnector:
             )
             return [record.data() for record in result]
 
+    def A_get_topics_by_author(self, author: str):
+        """
+        Return distinct topics for tweets authored by the given author.
+        
+        Args:
+            author (str): The author's name to filter tweets by (or 'All')
+            
+        Returns:
+            list: A list of distinct topics associated with the author's tweets.
+        """
+        query = """
+        MATCH (t:Tweet)
+        WHERE t.topic IS NOT NULL
+        """
+
+        if author != "All":
+            query += " AND t.author = $author"
+
+        query += """
+        RETURN DISTINCT t.topic AS topic
+        ORDER BY topic
+        """
+
+        with self.driver.session() as session:
+            result = session.run(query, author=author) if author != "All" else session.run(query)
+            return [record["topic"] for record in result]
+
+    def A_get_years_by_author(self, author: str):
+        """
+        Return distinct years (YYYY) in which the given author has posted tweets.
+
+        Args:
+            author (str): Author name or "All"
+        
+        Returns:
+            list: A sorted list of years (as strings)
+        """
+        query = """
+        MATCH (t:Tweet)
+        WHERE t.date IS NOT NULL
+        """
+
+        if author != "All":
+            query += " AND t.author = $author"
+
+        query += """
+        RETURN DISTINCT substring(t.date, 0, 4) AS year
+        ORDER BY year
+        """
+
+        with self.driver.session() as session:
+            result = session.run(query, author=author) if author != "All" else session.run(query)
+            return [record["year"] for record in result]
+
     def A1_get_likes_by_year_for_topic_and_author(self, topic: str, author: str):
         
         """
@@ -72,49 +126,38 @@ class Neo4jConnector:
             )
             return [{"year": record["year"], "likes": record["total_likes"]} for record in result]
         
-    def A1_get_topics_by_author(self, author: str):
+    def A2_get_topic_trend_by_month_year(self, year: str, author: str):
         """
-        Return distinct topics for tweets authored by the given author.
+        Retrieve the topic trend for a specific year and author from the Neo4j database.
         
         Args:
-            author (str): The author's name to filter tweets by.
-            
-        Returns:
-            list: A list of distinct topics associated with the author's tweets.
-        """
-        with self.driver.session() as session:
-            result = session.run(
-                """
-                MATCH (t:Tweet)
-                WHERE t.author = $author
-                RETURN DISTINCT t.topic AS topic
-                ORDER BY topic
-                """,
-                author=author
-            )
-            return [record["topic"] for record in result]
-
-    def A2_get_topic_trend_by_month_year(self, year: str):
-        """
-        Retrieve the topic trend for a specific year from the Neo4j database.
+            year (str): Year in 'YYYY' format
+            author (str): Author name or 'All' for all authors
         
-        Args:
-            year (str): The year to filter tweets by, in the format 'YYYY'.
-            
         Returns:
-            list: A list of dictionaries containing the month, topic, and count of tweets for that topic.
+            list: List of {month, topic, count}
         """
-        
         query = """
         MATCH (t:Tweet)
-        WHERE t.date STARTS WITH $year AND t.topic IS NOT NULL
+        WHERE t.date STARTS WITH $year
+        AND t.topic IS NOT NULL
+        """
+
+        if author != "All":
+            query += " AND t.author = $author"
+
+        query += """
         RETURN substring(t.date, 5, 2) AS month, t.topic AS topic, count(*) AS count
         ORDER BY month, count DESC
         """
+
+        params = {"year": year}
+        if author != "All":
+            params["author"] = author
+
         with self.driver.session() as session:
-            result = session.run(query, year=year)
-            records = result.data()
-            return records
+            result = session.run(query, **params)
+            return result.data()
 
     def A3_get_top_tweets(self, metric: str, limit: int):
         """
