@@ -81,6 +81,6 @@ def A4_sentiment_by_topic():
     return {"data": data}
 
 @app.get("/sentiment-per-year")
-def A5_sentiment_per_year():
-    data = connector.A5_get_average_sentiment_per_year()
+def A5_sentiment_per_year(author: str = Query(...)):
+    data = connector.A5_get_average_sentiment_per_year(author)
     return {"data": data}
