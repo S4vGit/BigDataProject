@@ -13,11 +13,13 @@ import {
 
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend);
 
-const A1_LikesTopicYear = ({ topic }) => {
+const A1_LikesTopicYear = ({ topic, author }) => {
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    fetch(`http://localhost:8000/analytics/likes-by-year?topic=${encodeURIComponent(topic)}`)
+    if (!topic || !author) return;
+
+    fetch(`http://localhost:8000/analytics/likes-by-year?topic=${encodeURIComponent(topic)}&author=${encodeURIComponent(author)}`)
       .then(res => res.json())
       .then(res => {
         const labels = res.data.map(item => item.year);
@@ -26,7 +28,7 @@ const A1_LikesTopicYear = ({ topic }) => {
           labels,
           datasets: [
             {
-              label: `Likes per Year for "${topic}"`,
+              label: `Likes per Year for "${topic}" by ${author}`,
               data: likes,
               borderColor: "#0d6efd",
               fill: false,
@@ -35,13 +37,13 @@ const A1_LikesTopicYear = ({ topic }) => {
           ]
         });
       });
-  }, [topic]);
+  }, [topic, author]);
 
   if (!data) return <p>Loading chart...</p>;
 
   return (
     <motion.div
-      key={topic}
+      key={topic + author}
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}

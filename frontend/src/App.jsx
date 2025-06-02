@@ -14,15 +14,29 @@ import A5_AverageSentimentYear from './components/A5_AverageSentimentYear';
 
 const App = () => {
   const [tweet, setTweet] = useState('');
-  const [profile, setProfile] = useState('');
+  const [profile, setProfile] = useState('Obama');
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState(null);
 
-  const [selectedTopic, setSelectedTopic] = useState('USA');
+
+  const [selectedTopic, setSelectedTopic] = useState('');
+  const [selectedAuthor, setSelectedAuthor] = useState(profile);
+  const [topics, setTopics] = useState([]);
 
   useEffect(() => {
-  AOS.init({ duration: 1000 });
-  }, []);
+    AOS.init({ duration: 1000 });
+    }, []);
+
+  useEffect(() => {
+    if (selectedAuthor) {
+      fetch(`http://localhost:8000/analytics/topics?author=${selectedAuthor}`)
+        .then(res => res.json())
+        .then(res => {
+          setTopics(res.topics);
+          setSelectedTopic(res.topics[0] || '');
+        });
+    }
+  }, [selectedAuthor]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -44,8 +58,6 @@ const App = () => {
 
     setLoading(false);
   };
-
-  const topics = ["politics", "climate change", "USA", "health", "family", "business", "finance"];
 
   return (
     <div className="container py-5 d-flex flex-column align-items-center">
@@ -104,20 +116,26 @@ const App = () => {
       {/* GRAFICO LIKES PER TOPIC */}
       <div className="card p-4 shadow mt-5" style={{ maxWidth: '700px', width: '100%' }} data-aos="fade-up">
         <div className="mb-3">
-          <h5>Like Topic per Year</h5>
+          <h5>Likes per Topic per Year</h5>
           <p className="mt-3 text-muted">
-            This chart shows how the number of likes received on tweets related to a selected topic has evolved over the years. 
-            It helps identify trends in public interest and engagement on specific themes, such as politics, climate change, or health. 
-            By analyzing like counts per year, users can better understand which topics gained or lost popularity over time.
+            This chart shows how the number of likes received on tweets related to a selected topic has evolved over the years.
           </p>
+
+          <label className="form-label mt-2">Select Author</label>
+          <select className="form-select mb-3" value={selectedAuthor} onChange={(e) => setSelectedAuthor(e.target.value)}>
+            <option value="Obama">Barack Obama</option>
+            <option value="Musk">Elon Musk</option>
+          </select>
+
+          <label className="form-label">Select Topic</label>
           <select className="form-select" value={selectedTopic} onChange={(e) => setSelectedTopic(e.target.value)}>
             {topics.map(topic => (
               <option key={topic} value={topic}>{topic}</option>
             ))}
           </select>
         </div>
-        
-        <A1_LikesTopicYear topic={selectedTopic} />
+
+        <A1_LikesTopicYear topic={selectedTopic} author={selectedAuthor} />
       </div>
 
       {/* GRAFICO TREND TOPIC PER ANNO  */}
