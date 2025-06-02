@@ -5,15 +5,16 @@ const A3_TopTweets = () => {
   const [metric, setMetric] = useState('likes');
   const [limit, setLimit] = useState(5);
   const [data, setData] = useState([]);
+  const [author, setAuthor] = useState("All");
 
   useEffect(() => {
     const fetchTopTweets = async () => {
-      const res = await fetch(`http://localhost:8000/top-tweets?metric=${metric}&limit=${limit}`);
+      const res = await fetch(`http://localhost:8000/top-tweets?metric=${metric}&limit=${limit}&author=${author}`);
       const json = await res.json();
       setData(json.data);
     };
     fetchTopTweets();
-  }, [metric, limit]);
+  }, [metric, limit, author]);
 
   return (
     <motion.div
@@ -24,7 +25,7 @@ const A3_TopTweets = () => {
         exit={{ opacity: 0, y: -50 }} 
         transition={{ duration: 0.6 }}
     >
-        <h5 className="mb-3">Top {limit} Tweet per {metric === 'likes' ? 'Like' : 'Retweet'}</h5>
+        <h5 className="mb-3">Top {limit} Tweet per {metric === 'likes' ? 'Like' : 'Retweet'} ({author}) </h5>
         <p className="text-muted mb-3">
             This table shows the top tweets ranked by the number of likes or retweets. You can switch between the two metrics and choose how many tweets to display.
             It helps identify the most engaging or viral tweets over time, giving insight into which topics or messages resonate most with the audience.
@@ -41,6 +42,12 @@ const A3_TopTweets = () => {
             <option value={10}>10</option>
             <option value={20}>20</option>
         </select>
+
+        <select className="form-select w-auto" value={author} onChange={(e) => setAuthor(e.target.value)}>
+            <option value="All">All</option>
+            <option value="Obama">Barack Obama</option>
+            <option value="Musk">Elon Musk</option>
+        </select>
         </div>
 
         <div className="table-responsive">
@@ -51,6 +58,7 @@ const A3_TopTweets = () => {
                     <th style={{ maxWidth: '300px' }}>Tweet</th>
                     <th>Topic</th>
                     <th>#{metric.charAt(0).toUpperCase() + metric.slice(1)}</th>
+                    <th>Author</th>
                 </tr>
             </thead>
             <tbody>
@@ -62,6 +70,7 @@ const A3_TopTweets = () => {
                 </td>
                 <td>{tweet.topic}</td>
                 <td>{tweet[metric]}</td>
+                <td>{tweet.author}</td> 
                 </tr>
             ))}
             </tbody>
