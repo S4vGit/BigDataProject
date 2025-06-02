@@ -4,28 +4,29 @@ import AOS from 'aos';
 import 'aos/dist/aos.css';
 import { AnimatePresence } from 'framer-motion';
 
-import A1_LikesTopicYear from './components/A1_LikesTopicYear'; 
+// Importa i tuoi componenti
+import A1_LikesTopicYear from './components/A1_LikesTopicYear';
 import A2_TopicTrendMonth from './components/A2_TopicTrendMonth';
 import A3_TopTweets from './components/A3_TopTweets';
 import A4_AverageSentimentTopic from "./components/A4_AverageSentimentTopic";
 import A5_AverageSentimentYear from './components/A5_AverageSentimentYear';
 
 
-
 const App = () => {
   const [tweet, setTweet] = useState('');
-  const [profile, setProfile] = useState('Obama');
   const [loading, setLoading] = useState(false);
-  const [response, setResponse] = useState(null);
+  const [response, setResponse] = useState(null); // Questo ora sarà la risposta completa
 
+  // Rimuovi questo stato, non serve più per il non-streaming
+  // const [currentExplanation, setCurrentExplanation] = useState(''); 
 
   const [selectedTopic, setSelectedTopic] = useState('');
-  const [selectedAuthor, setSelectedAuthor] = useState(profile);
+  const [selectedAuthor, setSelectedAuthor] = useState('Obama'); 
   const [topics, setTopics] = useState([]);
 
   useEffect(() => {
     AOS.init({ duration: 1000 });
-    }, []);
+  }, []);
 
   useEffect(() => {
     if (selectedAuthor) {
@@ -41,19 +42,44 @@ const App = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setResponse(null);
+    setResponse(null); // Resetta la risposta precedente
+    // Rimuovi questa riga
+    // setCurrentExplanation(''); 
 
     try {
       const res = await fetch('http://localhost:8000/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tweet, author: profile })
+        body: JSON.stringify({ tweet })
       });
 
-      const data = await res.json();
-      setResponse(data);
+      // NON più gestione dello streaming, ma attesa di un singolo JSON
+      const data = await res.json(); 
+      
+      // Gestione di potenziali errori HTTP dal backend (e.g., status 404/500)
+      if (!res.ok) {
+          // Se il backend ha restituito un errore JSON, usalo. Altrimenti, un errore generico.
+          console.error('Backend error:', data.explanation || 'Unknown error');
+          setResponse({
+              predicted_author: "ERROR",
+              explanation: data.explanation || `Server error: ${res.statusText}`,
+              confidence: 0.0,
+              topic: data.topic || "N/A",
+              topic_confidence: data.topic_confidence || 0.0
+          });
+      } else {
+          setResponse(data); // Imposta la risposta completa
+      }
+      
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error during fetch:', error);
+      setResponse({
+          predicted_author: "ERROR",
+          explanation: `An unexpected error occurred: ${error.message}`,
+          confidence: 0.0,
+          topic: "N/A",
+          topic_confidence: 0.0
+      });
     }
 
     setLoading(false);
@@ -66,18 +92,6 @@ const App = () => {
           <i className="fas fa-user-secret fa-2x text-primary me-2"></i>
           <h1 className="h4 fw-bold d-inline">Twitter Author Identifier</h1>
           <p className="text-muted">Determine if a tweet was likely written by a specific person</p>
-        </div>
-
-        <div className="bg-light p-3 rounded mb-3">
-          <label className="form-label">Select Profile to Compare</label>
-          <select className="form-select" value={profile} onChange={(e) => setProfile(e.target.value)}>
-            <option value="">-- Select a profile --</option>
-            <option value="elonmusk">Elon Musk</option>
-            <option value="obama">Barack Obama</option>
-            <option value="realDonaldTrump">Donald Trump</option>
-            <option value="BillGates">Bill Gates</option>
-            <option value="cristiano">Cristiano Ronaldo</option>
-          </select>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -105,15 +119,19 @@ const App = () => {
           </div>
         )}
 
+        {/* Visualizzazione della risposta completa, non in streaming */}
         {response && !loading && (
           <div className="alert alert-info mt-4">
-            <h5>Result</h5>
-            <p><strong>Answer:</strong> {response.result}</p>
+            <h5 className="mb-3">Analysis Result</h5>
+            <p>
+              {response.explanation}
+            </p>
+            {/* Ho rimosso il paragrafo con Topic e LLM Confidence */}
           </div>
         )}
       </div>
 
-      {/* GRAFICO LIKES PER TOPIC */}
+      {/* Resto dei grafici e componenti (rimangono invariati per ora) */}
       <div className="card p-4 shadow mt-5" style={{ maxWidth: '700px', width: '100%' }} data-aos="fade-up">
         <div className="mb-3">
           <h5>Likes per Topic per Year</h5>
@@ -140,12 +158,10 @@ const App = () => {
         <A1_LikesTopicYear topic={selectedTopic} author={selectedAuthor} />
       </div>
 
-      {/* GRAFICO TREND TOPIC PER ANNO  */}
       <div className="card p-4 shadow mt-5" style={{ maxWidth: '700px', width: '100%' }} data-aos="fade-up">
         <A2_TopicTrendMonth />
       </div>
       
-
       <AnimatePresence mode="wait">
         <A3_TopTweets key="top-tweets" />
       </AnimatePresence>
