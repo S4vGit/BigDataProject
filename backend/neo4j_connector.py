@@ -46,13 +46,14 @@ class Neo4jConnector:
             )
             return [record.data() for record in result]
 
-    def A1_get_likes_by_year_for_topic(self, topic: str):
+    def A1_get_likes_by_year_for_topic_and_author(self, topic: str, author: str):
         
         """
         Return number of likes per year for a given topic. 
         
         Args:
             topic (str): The topic to filter tweets by.
+            author (str): The author to filter tweets by.
         
         Returns:
             list: A list of dictionaries with year and total likes for that year.
@@ -61,14 +62,37 @@ class Neo4jConnector:
             result = session.run(
                 """
                 MATCH (t:Tweet)
-                WHERE t.topic = $topic
-                WITH t, split(t.date, "/")[0] AS year
+                WHERE t.topic = $topic AND t.author = $author
+                WITH t, substring(t.date, 0, 4) AS year
                 RETURN year, sum(t.likes) AS total_likes
                 ORDER BY year
                 """,
-                topic=topic
+                topic=topic,
+                author=author
             )
             return [{"year": record["year"], "likes": record["total_likes"]} for record in result]
+        
+    def A1_get_topics_by_author(self, author: str):
+        """
+        Return distinct topics for tweets authored by the given author.
+        
+        Args:
+            author (str): The author's name to filter tweets by.
+            
+        Returns:
+            list: A list of distinct topics associated with the author's tweets.
+        """
+        with self.driver.session() as session:
+            result = session.run(
+                """
+                MATCH (t:Tweet)
+                WHERE t.author = $author
+                RETURN DISTINCT t.topic AS topic
+                ORDER BY topic
+                """,
+                author=author
+            )
+            return [record["topic"] for record in result]
 
     def A2_get_topic_trend_by_month_year(self, year: str):
         """

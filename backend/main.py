@@ -42,10 +42,18 @@ async def analyze_tweet(data: TweetRequest):
     return result
 
 @app.get("/analytics/likes-by-year")
-async def A1_get_likes_by_year(topic: str = Query(..., description="Topic to analyze")):
+async def A1_get_likes_by_year(topic: str = Query(..., description="Topic to analyze"), author: str = Query(..., description="Author to filter by")):
     try:
-        data = connector.A1_get_likes_by_year_for_topic(topic)
-        return {"topic": topic, "data": data}
+        data = connector.A1_get_likes_by_year_for_topic_and_author(topic,author)
+        return {"topic": topic, "author": author, "data": data}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+    
+@app.get("/analytics/topics")
+async def A1_get_topics(author: str = Query(...)):
+    try:
+        topics = connector.A1_get_topics_by_author(author)
+        return {"author": author, "topics": topics}
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
     
