@@ -159,7 +159,7 @@ class Neo4jConnector:
             result = session.run(query, **params)
             return result.data()
 
-    def A3_get_top_tweets(self, metric: str, limit: int):
+    def A3_get_top_tweets(self, metric: str, limit: int, author: str):
         """
         Retrieve top tweets ordered by likes or retweets.
 
@@ -174,13 +174,22 @@ class Neo4jConnector:
         query = f"""
         MATCH (t:Tweet)
         WHERE t.{metric} IS NOT NULL
-        RETURN t.text AS content, t.likes AS likes, t.retweets AS retweets,
-            t.date AS date, t.topic AS topic
-        ORDER BY t.{metric} DESC
-        LIMIT $limit
         """
+        
+        if author != "All":
+            query += " AND t.author = $author"
+            
+        query += f"""
+        RETURN t.text AS content, t.likes AS likes, t.retweets AS retweets,
+            substring(t.date, 0, 10) AS date, t.topic AS topic, t.author AS author
+        ORDER BY t.{metric} DESC
+        LIMIT $limit"""
+        
         with self.driver.session() as session:
-            result = session.run(query, limit=limit)
+            params = {"limit": limit}
+            if author != "All":
+                params["author"] = author
+            result = session.run(query, **params)
             return result.data()
 
     def A4_get_average_sentiment_by_topic(self):

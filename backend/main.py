@@ -71,8 +71,8 @@ def A2_topic_trend_by_year(year: str = Query(..., min_length=4, max_length=4), a
     return {"data": data}
 
 @app.get("/top-tweets")
-def A3_get_top_tweets(metric: str = Query("likes", enum=["likes", "retweets"]), limit: int = 5):
-    data = connector.A3_get_top_tweets(metric, limit)
+def A3_get_top_tweets(metric: str = Query("likes", enum=["likes", "retweets"]), limit: int = 5, author: str = Query(...)):
+    data = connector.A3_get_top_tweets(metric, limit, author)
     return {"data": data}
 
 @app.get("/analytics/sentiment-by-topic")
