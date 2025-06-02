@@ -2,13 +2,38 @@ import { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const A2_TopicTrendMonth = () => {
-  const [year, setYear] = useState('2019');
+  const [years, setYears] = useState([]);
+  const [year, setYear] = useState("2019");
+  const [author, setAuthor] = useState('All');
   const [data, setData] = useState([]);
   const [topics, setTopics] = useState([]);
 
   useEffect(() => {
+  const fetchTopicsAndYears = async () => {
+    const [topicsRes, yearsRes] = await Promise.all([
+      fetch(`http://localhost:8000/analytics/topics?author=${author}`),
+      fetch(`http://localhost:8000/analytics/years?author=${author}`)
+    ]);
+
+    const topicsJson = await topicsRes.json();
+    const yearsJson = await yearsRes.json();
+
+    setTopics(topicsJson.topics);
+    setYears(yearsJson.years);
+
+    // Se l'anno corrente non è più disponibile per il nuovo autore, resetta
+    if (!yearsJson.years.includes(year)) {
+      setYear(yearsJson.years.at(-1) || "2019");  // default fallback
+    }
+  };
+
+  fetchTopicsAndYears();
+}, [author]);
+
+
+  useEffect(() => {
     const fetchData = async () => {
-      const res = await fetch(`http://localhost:8000/topic-trend-by-year?year=${year}`);
+      const res = await fetch(`http://localhost:8000/topic-trend-by-year?year=${year}&author=${author}`);
       const json = await res.json();
 
       const topicSet = new Set();
@@ -30,29 +55,40 @@ const A2_TopicTrendMonth = () => {
           return entry;
         });
 
-      setTopics(allTopics);
       setData(formatted);
     };
 
     fetchData();
-  }, [year]);
+  }, [year, author]);
 
   return (
     <div>
       <h5 className="mb-3">Topic Trend per Month in {year}</h5>
       <p className="text-muted mb-3">
-        This chart displays the monthly distribution of tweet topics for a selected year. 
+        This chart displays the monthly distribution of tweet topics for a selected year and author. 
         It allows users to observe how different topics vary in prominence throughout the year, 
         helping identify seasonal patterns or bursts of public interest in specific themes.
       </p>
 
+      <div className="row mb-4">
+        <div className="col">
+          <label className="form-label">Select Year</label>
+          <select className="form-select" value={year} onChange={(e) => setYear(e.target.value)}>
+            {years.map((y) => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+        </div>
+        <div className="col">
+          <label className="form-label">Select Author</label>
+          <select className="form-select" value={author} onChange={(e) => setAuthor(e.target.value)}>
+            <option value="All">All</option>
+            <option value="Obama">Barack Obama</option>
+            <option value="Musk">Elon Musk</option>
+          </select>
+        </div>
+      </div>
 
-      <select className="form-select mb-4" value={year} onChange={(e) => setYear(e.target.value)}>
-        {[...Array(8)].map((_, i) => {
-          const y = 2012 + i;
-          return <option key={y} value={y}>{y}</option>;
-        })}
-      </select>
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={data}>
           <XAxis
