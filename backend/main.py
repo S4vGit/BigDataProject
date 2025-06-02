@@ -1,10 +1,12 @@
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from schemas import TweetRequest, TweetResponse
 import pandas as pd
 from neo4j_connector import Neo4jConnector
-
+import json
+import asyncio
+import faiss
 
 from services.topic_extraction import classify_topic
 from services.tweet_analysis import analyze_tweet_with_context
@@ -23,7 +25,7 @@ app.add_middleware(
 
 
 @app.post("/analyze")
-async def analyze_tweet(data: TweetRequest):
+async def analyze_tweet(data: TweetRequest): # Mantiene async per FastAPI, ma la logica interna sarà sincrona
     topic, confidence = classify_topic(data.tweet)
     print(f"[DEBUG] Topic extracted: {topic} ({confidence:.2%})")
     
@@ -32,24 +34,44 @@ async def analyze_tweet(data: TweetRequest):
     
     # If no tweets are found for the specified author and topic, return a message
     if df.empty:
-        return {
-            "result": "ERROR: No tweets found for this author and topic.",
-        }
-    
+        return JSONResponse(status_code=404, content={
+            "predicted_author": "ERROR",
+            "explanation": "No tweets found for this topic.",
+            "confidence": 0.0,
+            "topic": topic,
+            "topic_confidence": round(confidence * 100, 2)
+        })
+        
+    # Context embedding and search (Questa logica è ora inglobata in analyze_tweet_with_context)
+    # Rimuovi tutto il blocco FAISS da qui, perché è già in tweet_analysis.py
+    # corpus_embeddings = encoder.encode(df["text"].tolist(), convert_to_numpy=True)
+    # ...
+    # query_embedding = encoder.encode([data.tweet])
+    # ...
+    # context_str = "\n".join(context_tweets_with_authors)
+    # print(f"[DEBUG] Context tweets for LLM: {context_str}")
+    # prompt = f"""...""" # Rimuovi anche la costruzione del prompt
+
+    # Chiamata alla funzione di analisi (ora sincrona)
+    # Visto che analyze_tweet_with_context è sincrona, la chiamiamo direttamente.
+    # FastAPI la gestirà bloccando l'event loop finché non torna, ma va bene per singole richieste.
     analysis_output = analyze_tweet_with_context(data.tweet, df) 
     
     # Verifica che il risultato sia un dict e abbia le chiavi attese
     if "result" not in analysis_output or "explanation" not in analysis_output:
-        return {
-            "result": "ERROR: LLM analysis output format invalid.",
+        return JSONResponse(status_code=500, content={ # Status 500 per errori interni
+            "predicted_author": "ERROR",
+            "explanation": "LLM analysis output format invalid.",
+            "confidence": 0.0, # Puoi impostare una confidence di 0
             "topic": topic,
             "topic_confidence": round(confidence * 100, 2)
-        }
+        })
 
+    # Restituisci la risposta JSON completa
     return {
-        "predicted_author": analysis_output["result"], # Nuovo nome della chiave per chiarezza
-        "explanation": analysis_output["explanation"], # Nuova chiave per l'spiegazione
-        "confidence": analysis_output["confidence"], # Questa è la confidence fissa, se non l'hai calcolata
+        "predicted_author": analysis_output["result"],
+        "explanation": analysis_output["explanation"],
+        "confidence": analysis_output["confidence"],
         "topic": topic,
         "topic_confidence": round(confidence * 100, 2)
     }

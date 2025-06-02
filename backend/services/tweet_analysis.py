@@ -31,12 +31,16 @@ def analyze_tweet_with_context(tweet: str, df: pd.DataFrame) -> dict:
     # Find similar tweets
     query_embedding = encoder.encode([tweet])
     distances, indices = index.search(query_embedding, 5)
-    context_tweets = df.iloc[indices[0]]["text"].tolist()
     
-    print("context_tweets", context_tweets)
-
+    context_tweets_with_authors = []
+    for idx in indices[0]:
+        tweet_text = df.iloc[idx]["text"]
+        tweet_original_author = df.iloc[idx]["author"] # Retrieving the original author of the tweet
+        context_tweets_with_authors.append(f'- "{tweet_text}" (Author: {tweet_original_author})')
+    
     # Prompt creation
-    context_str = "\n".join(f'- "{t}" (Author: {a})' for t, a in zip(df["text"].tolist(), df["author"].tolist()))
+    context_str = "\n".join(context_tweets_with_authors)
+    print("context_str", context_str)
     prompt = f"""I will provide you with a list of tweets.
 
 Tweets:
@@ -46,44 +50,34 @@ Now, consider this new tweet:
 
 "{tweet}"
 Question: Could this tweet have been written by Obama, Musk or neither?
-Answer and give a brief explanation."""
+Answer and give a brief explanation.
+"""
 
     # Call the LLM
     try:
         completion = client.chat.completions.create(
-            model="local-model", # Local model name (using meta-llama-3-8b-instruct)
+            model="local-model", # Local model name (using meta-llama-3.1-8b-instruct)
             messages=[
-                {"role": "system", "content": "You are an expert in tweet analysis and author attribution."},
+                {"role": "system", "content": "You are an expert in tweet analysis and author attribution. Provide concise and accurate explanations based on the context."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.1, # Making the model more deterministic
-            max_tokens=200, # Aumenta i max_tokens se l'spiegazione può essere lunga
+            max_tokens=200, 
+            stream = False,
             # Puoi aggiungere altri parametri come top_p, frequency_penalty, ecc.
         )
         
         raw_response = completion.choices[0].message.content
-        print(f"[DEBUG] Llama 3 Raw Response: {raw_response}")
 
-        # --- Parsing della risposta del modello ---
-        # Il modello risponderà con "Obama" o "Musk" o "neither" e la spiegazione.
-        # Dobbiamo estrarre l'autore e la spiegazione.
-        # Llama 3 è abbastanza bravo a seguire istruzioni, ma potrebbe essere necessario
-        # un po' di parsing robusto se la sua risposta non è sempre nello stesso formato.
-
-        # Esempio di parsing semplice: cerca le parole chiave
+        # Parse the response to determine the predicted author and explanation
         predicted_author = "neither"
         explanation = raw_response
 
-        # Cerca "Obama" o "Musk" (case-insensitive)
+        # Check if the response contains the names of the authors
         if "Obama" in raw_response:
             predicted_author = "Obama"
         elif "Musk" in raw_response:
             predicted_author = "Musk"
-        
-        # Potresti voler raffinare l'estrazione dell'spiegazione
-        # Ad esempio, se il modello risponde "Obama. Because of X, Y, Z.", potresti
-        # dividere la stringa per il primo "." o cercare pattern specifici.
-        # Per ora, l'intera risposta è l'spiegazione.
 
         # LM Studio non ti darà una "confidence score" diretta come un classificatore BART.
         # Potresti assegnare una confidence fissa alta se il modello risponde in modo chiaro,
