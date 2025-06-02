@@ -4,7 +4,6 @@ import AOS from 'aos';
 import 'aos/dist/aos.css';
 import { AnimatePresence } from 'framer-motion';
 
-// Importa i tuoi componenti
 import A1_LikesTopicYear from './components/A1_LikesTopicYear';
 import A2_TopicTrendMonth from './components/A2_TopicTrendMonth';
 import A3_TopTweets from './components/A3_TopTweets';
@@ -15,10 +14,8 @@ import A5_AverageSentimentYear from './components/A5_AverageSentimentYear';
 const App = () => {
   const [tweet, setTweet] = useState('');
   const [loading, setLoading] = useState(false);
-  const [response, setResponse] = useState(null); // Questo ora sarà la risposta completa
-
-  // Rimuovi questo stato, non serve più per il non-streaming
-  // const [currentExplanation, setCurrentExplanation] = useState(''); 
+  const [response, setResponse] = useState(null); // Final response after streaming
+  const [currentExplanation, setCurrentExplanation] = useState(''); // For streaming response
 
   const [selectedTopic, setSelectedTopic] = useState('');
   const [selectedAuthor, setSelectedAuthor] = useState('Obama'); 
@@ -42,9 +39,8 @@ const App = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setResponse(null); // Resetta la risposta precedente
-    // Rimuovi questa riga
-    // setCurrentExplanation(''); 
+    setResponse(null); 
+    setCurrentExplanation(''); // Reset streaming explanation
 
     try {
       const res = await fetch('http://localhost:8000/analyze', {
@@ -53,33 +49,53 @@ const App = () => {
         body: JSON.stringify({ tweet })
       });
 
-      // NON più gestione dello streaming, ma attesa di un singolo JSON
-      const data = await res.json(); 
-      
-      // Gestione di potenziali errori HTTP dal backend (e.g., status 404/500)
-      if (!res.ok) {
-          // Se il backend ha restituito un errore JSON, usalo. Altrimenti, un errore generico.
-          console.error('Backend error:', data.explanation || 'Unknown error');
-          setResponse({
-              predicted_author: "ERROR",
-              explanation: data.explanation || `Server error: ${res.statusText}`,
-              confidence: 0.0,
-              topic: data.topic || "N/A",
-              topic_confidence: data.topic_confidence || 0.0
-          });
-      } else {
-          setResponse(data); // Imposta la risposta completa
+      // Streaming management
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulatedResponse = {}; // Save the final response
+      let buffer = '';
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        
+        // Process the buffer to extract complete JSON objects
+        const lines = buffer.split('\n');
+        buffer = lines.pop(); 
+
+        for (const line of lines) {
+          if (line.trim() === '') continue; 
+          try {
+            const data = JSON.parse(line);
+            
+            setCurrentExplanation(data.explanation);
+
+            if (!data.streaming) { 
+                accumulatedResponse = data; // Final JSON response
+            }
+
+          } catch (jsonError) {
+            console.error('Error parsing JSON chunk:', jsonError, line);
+            setCurrentExplanation(prev => prev + `\nError processing data: ${jsonError.message}`);
+          }
+        }
       }
+
+      setResponse(accumulatedResponse); // Set the final response after streaming completes
       
     } catch (error) {
       console.error('Error during fetch:', error);
       setResponse({
           predicted_author: "ERROR",
-          explanation: `An unexpected error occurred: ${error.message}`,
+          explanation: `An error occurred: ${error.message}`,
           confidence: 0.0,
           topic: "N/A",
-          topic_confidence: 0.0
+          topic_confidence: 0.0,
+          streaming: false // Streaming failed
       });
+
     }
 
     setLoading(false);
@@ -119,19 +135,27 @@ const App = () => {
           </div>
         )}
 
-        {/* Visualizzazione della risposta completa, non in streaming */}
-        {response && !loading && (
+        {/* Streaming response visualization */}
+        {currentExplanation && ( 
           <div className="alert alert-info mt-4">
             <h5 className="mb-3">Analysis Result</h5>
             <p>
-              {response.explanation}
+              {currentExplanation} {/* Streaming response*/}
             </p>
-            {/* Ho rimosso il paragrafo con Topic e LLM Confidence */}
+
           </div>
+        )}
+
+        {/* If there's an error, shows the final explanaition */}
+        {response && response.predicted_author === "ERROR" && !currentExplanation && (
+            <div className="alert alert-danger mt-4">
+                <h5 className="mb-3">Error</h5>
+                <p>{response.explanation}</p>
+            </div>
         )}
       </div>
 
-      {/* Resto dei grafici e componenti (rimangono invariati per ora) */}
+      {/* Rest of components */}
       <div className="card p-4 shadow mt-5" style={{ maxWidth: '700px', width: '100%' }} data-aos="fade-up">
         <div className="mb-3">
           <h5>Likes per Topic per Year</h5>
