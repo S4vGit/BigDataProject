@@ -5,8 +5,6 @@ jinja2
 neo4j
 python-dotenv
 faiss-cpu
-llama-cpp-python
-sentence-transformers 
-transformers
+sentence-transformers
 spacy
 openai
