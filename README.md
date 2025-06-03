@@ -1,9 +1,36 @@
 # 🧠 Big Data Project: LLM-Based Personality Inference
 
 This project aims to infer user personality traits from social media content (tweets), using Named Entity Recognition, Topic Classification, and an LLM for reasoning.  
-It is designed to run **entirely locally**, leveraging **LM Studio** and a local **Neo4j** database.
+It is designed to run entirely locally, leveraging **LM Studio** for inference, a local **Neo4j** database for storage, and a **React + Vite** frontend for user interaction.
+
 
 ---
+## 📁 Project Structure
+```
+BigDataProject/
+├── backend/
+│   ├── main.py
+│   ├── schemas.py
+│   ├── neo4j_connector.py
+│   └── services/
+│       ├── tweet_analysis.py
+│       └── topic_extraction.py
+├── frontend/
+│   ├── index.html
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── public/
+│   │   └── (static assets, e.g. favicon, images)
+│   └── src/
+│       ├── main.jsx
+│       ├── App.jsx
+│       └── components/
+│           └── (React components)
+├── .gitignore
+├── requirements.txt
+├── setup.sh
+└── README.md
+```
 
 ## ⚙️ Setup Instructions
 
