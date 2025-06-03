@@ -4,7 +4,7 @@
 set -e
 
 # Conda environment name
-CONDA_ENV_NAME="neo4jProva"
+CONDA_ENV_NAME="myenv"
 
 # Conda activation (modify this if you use a different conda environment)
 if [ -z "$CONDA_PREFIX" ]; then
