@@ -25,9 +25,9 @@ const A3_TopTweets = () => {
         exit={{ opacity: 0, y: -50 }} 
         transition={{ duration: 0.6 }}
     >
-        <div className="text-center mb-3"> {/* Use text-center for horizontal centering */}
-        <div className="d-inline-flex align-items-center"> {/* Use d-inline-flex for icon and text alignment and inline centering */}
-          <i className="fas fa-medal fa-lg text-primary me-2"></i> {/* Icon for top/ranking */}
+        <div className="text-center mb-3">
+        <div className="d-inline-flex align-items-center">
+          <i className="fas fa-medal fa-lg text-primary me-2"></i>
           <h5 className="h4 fw-bold d-inline">Top {limit} Tweet per {metric === 'likes' ? 'Like' : 'Retweet'} ({author}) </h5>
         </div>
       </div>

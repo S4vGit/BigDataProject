@@ -19,26 +19,24 @@ const A1_LikesTopicYear = () => {
   const [selectedAuthor, setSelectedAuthor] = useState('Obama'); 
   const [topics, setTopics] = useState([]);
 
-  // Effetto per caricare i topic disponibili quando cambia l'autore selezionato
+  // Load topics when the component mounts or when the selected author changes
   useEffect(() => {
     if (selectedAuthor) {
       fetch(`http://localhost:8000/analytics/topics?author=${selectedAuthor}`)
         .then(res => res.json())
         .then(res => {
           setTopics(res.topics);
-          // Imposta il primo topic disponibile come selezionato di default,
-          // ma solo se il topic attualmente selezionato non è nella nuova lista
           if (!res.topics.includes(selectedTopic)) {
             setSelectedTopic(res.topics[0] || '');
           }
         });
     }
-  }, [selectedAuthor, selectedTopic]); // Aggiunto selectedTopic per evitare loop infiniti
+  }, [selectedAuthor, selectedTopic]); 
 
-  // Effetto per caricare i dati del grafico quando cambiano topic o autore
+  // Load chart data when the selected topic or author changes
   useEffect(() => {
     if (!selectedTopic || !selectedAuthor) {
-      setChartData(null); // Resetta i dati se topic o autore non sono selezionati
+      setChartData(null); // Reset chart data if no topic or author is selected
       return;
     }
 
@@ -62,7 +60,7 @@ const A1_LikesTopicYear = () => {
       })
       .catch(error => {
         console.error("Error fetching A1 chart data:", error);
-        setChartData(null); // Gestione errore
+        setChartData(null); 
       });
   }, [selectedTopic, selectedAuthor]);
 

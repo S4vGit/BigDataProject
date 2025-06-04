@@ -134,7 +134,7 @@ const LLM_TweetGenerator = () => {
       </div>
 
       <button 
-        className="btn btn-primary w-100 d-flex align-items-center justify-content-center" // Changed to primary for consistency
+        className="btn btn-primary w-100 d-flex align-items-center justify-content-center"
         onClick={handleGenerateTweet} 
         disabled={loadingGeneration || !selectedTopic} 
       >
@@ -157,7 +157,7 @@ const LLM_TweetGenerator = () => {
 
       {generatedTweet && (
         <motion.div 
-          className="alert alert-info mt-3" // Changed to alert-info for consistency with analysis result
+          className="alert alert-info mt-3"
           role="alert"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

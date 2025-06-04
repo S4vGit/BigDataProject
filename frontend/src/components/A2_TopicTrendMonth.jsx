@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { motion } from 'framer-motion'; // Import motion for AOS fade-up effect
+import { motion } from 'framer-motion';
 
 const A2_TopicTrendMonth = () => {
   const [years, setYears] = useState([]);
@@ -22,7 +22,7 @@ const A2_TopicTrendMonth = () => {
       setTopics(topicsJson.topics);
       setYears(yearsJson.years);
 
-      // Se l'anno corrente non è più disponibile per il nuovo autore, resetta
+      // If the selected year is not in the fetched years, reset to the last available year
       if (!yearsJson.years.includes(year)) {
         setYear(yearsJson.years.at(-1) || "2019");  // default fallback
       }
@@ -63,9 +63,9 @@ const A2_TopicTrendMonth = () => {
 
   return (
     <motion.div
-      className="card p-4 shadow mt-5" // Added card styling
+      className="card p-4 shadow mt-5"
       style={{ maxWidth: '700px', width: '100%' }}
-      data-aos="fade-up" // Kept AOS effect if present in parent
+      data-aos="fade-up"
     >
       {/* Centered title with icon */}
       <div className="text-center mb-3">
