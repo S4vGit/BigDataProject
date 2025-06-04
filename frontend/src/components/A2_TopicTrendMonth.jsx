@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { motion } from 'framer-motion'; // Import motion for AOS fade-up effect
 
 const A2_TopicTrendMonth = () => {
   const [years, setYears] = useState([]);
@@ -9,27 +10,26 @@ const A2_TopicTrendMonth = () => {
   const [topics, setTopics] = useState([]);
 
   useEffect(() => {
-  const fetchTopicsAndYears = async () => {
-    const [topicsRes, yearsRes] = await Promise.all([
-      fetch(`http://localhost:8000/analytics/topics?author=${author}`),
-      fetch(`http://localhost:8000/analytics/years?author=${author}`)
-    ]);
+    const fetchTopicsAndYears = async () => {
+      const [topicsRes, yearsRes] = await Promise.all([
+        fetch(`http://localhost:8000/analytics/topics?author=${author}`),
+        fetch(`http://localhost:8000/analytics/years?author=${author}`)
+      ]);
 
-    const topicsJson = await topicsRes.json();
-    const yearsJson = await yearsRes.json();
+      const topicsJson = await topicsRes.json();
+      const yearsJson = await yearsRes.json();
 
-    setTopics(topicsJson.topics);
-    setYears(yearsJson.years);
+      setTopics(topicsJson.topics);
+      setYears(yearsJson.years);
 
-    // Se l'anno corrente non è più disponibile per il nuovo autore, resetta
-    if (!yearsJson.years.includes(year)) {
-      setYear(yearsJson.years.at(-1) || "2019");  // default fallback
-    }
-  };
+      // Se l'anno corrente non è più disponibile per il nuovo autore, resetta
+      if (!yearsJson.years.includes(year)) {
+        setYear(yearsJson.years.at(-1) || "2019");  // default fallback
+      }
+    };
 
-  fetchTopicsAndYears();
-}, [author]);
-
+    fetchTopicsAndYears();
+  }, [author, year]); // Added year to dependencies to prevent infinite loop if year isn't reset correctly
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,7 +44,7 @@ const A2_TopicTrendMonth = () => {
         grouped[month][topic] = count;
       });
 
-      const allTopics = Array.from(topicSet);
+      const allTopics = Array.from(topicSet).sort(); // Sort topics for consistent legend/lines
       const formatted = Object.entries(grouped)
         .sort(([a], [b]) => parseInt(a, 10) - parseInt(b, 10))
         .map(([month, topicsObj]) => {
@@ -62,8 +62,18 @@ const A2_TopicTrendMonth = () => {
   }, [year, author]);
 
   return (
-    <div>
-      <h5 className="mb-3">Topic Trend per Month in {year}</h5>
+    <motion.div
+      className="card p-4 shadow mt-5" // Added card styling
+      style={{ maxWidth: '700px', width: '100%' }}
+      data-aos="fade-up" // Kept AOS effect if present in parent
+    >
+      {/* Centered title with icon */}
+      <div className="text-center mb-3">
+        <div className="d-inline-flex align-items-center">
+          <i className="fas fa-chart-line fa-lg text-primary me-2"></i> {/* Icon for line chart/trend */}
+          <h5 className="h4 fw-bold d-inline">Topic Trend per Month in {year}</h5>
+        </div>
+      </div>
       <p className="text-muted mb-3">
         This chart displays the monthly distribution of tweet topics for a selected year and author. 
         It allows users to observe how different topics vary in prominence throughout the year, 
@@ -114,7 +124,7 @@ const A2_TopicTrendMonth = () => {
           ))}
         </LineChart>
       </ResponsiveContainer>
-    </div>
+    </motion.div>
   );
 };
 

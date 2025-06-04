@@ -13,22 +13,45 @@ import {
 
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend);
 
-const A1_LikesTopicYear = ({ topic, author }) => {
-  const [data, setData] = useState(null);
+const A1_LikesTopicYear = () => {
+  const [chartData, setChartData] = useState(null);
+  const [selectedTopic, setSelectedTopic] = useState('');
+  const [selectedAuthor, setSelectedAuthor] = useState('Obama'); 
+  const [topics, setTopics] = useState([]);
 
+  // Effetto per caricare i topic disponibili quando cambia l'autore selezionato
   useEffect(() => {
-    if (!topic || !author) return;
+    if (selectedAuthor) {
+      fetch(`http://localhost:8000/analytics/topics?author=${selectedAuthor}`)
+        .then(res => res.json())
+        .then(res => {
+          setTopics(res.topics);
+          // Imposta il primo topic disponibile come selezionato di default,
+          // ma solo se il topic attualmente selezionato non è nella nuova lista
+          if (!res.topics.includes(selectedTopic)) {
+            setSelectedTopic(res.topics[0] || '');
+          }
+        });
+    }
+  }, [selectedAuthor, selectedTopic]); // Aggiunto selectedTopic per evitare loop infiniti
 
-    fetch(`http://localhost:8000/analytics/likes-by-year?topic=${encodeURIComponent(topic)}&author=${encodeURIComponent(author)}`)
+  // Effetto per caricare i dati del grafico quando cambiano topic o autore
+  useEffect(() => {
+    if (!selectedTopic || !selectedAuthor) {
+      setChartData(null); // Resetta i dati se topic o autore non sono selezionati
+      return;
+    }
+
+    fetch(`http://localhost:8000/analytics/likes-by-year?topic=${encodeURIComponent(selectedTopic)}&author=${encodeURIComponent(selectedAuthor)}`)
       .then(res => res.json())
       .then(res => {
         const labels = res.data.map(item => item.year);
         const likes = res.data.map(item => item.likes);
-        setData({
+        setChartData({
           labels,
           datasets: [
             {
-              label: `Likes per Year for "${topic}" by ${author}`,
+              label: `Likes per Year for "${selectedTopic}" by ${selectedAuthor}`,
               data: likes,
               borderColor: "#0d6efd",
               fill: false,
@@ -36,20 +59,54 @@ const A1_LikesTopicYear = ({ topic, author }) => {
             }
           ]
         });
+      })
+      .catch(error => {
+        console.error("Error fetching A1 chart data:", error);
+        setChartData(null); // Gestione errore
       });
-  }, [topic, author]);
-
-  if (!data) return <p>Loading chart...</p>;
+  }, [selectedTopic, selectedAuthor]);
 
   return (
     <motion.div
-      key={topic + author}
-      initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className="mt-5"
+      className="card p-4 shadow mt-5" // Aggiunte classi per lo stile della card
+      style={{ maxWidth: '700px', width: '100%' }}
+      data-aos="fade-up" // Mantenuto l'effetto AOS
+      key={selectedTopic + selectedAuthor} // Aggiorna la key per forzare il re-mount/animazione
     >
-      <Line data={data} />
+      {/* Centered title with icon */}
+      <div className="text-center mb-3">
+        <div className="d-inline-flex align-items-center">
+          <i className="fas fa-thumbs-up fa-lg text-primary me-2"></i> {/* Icon for likes/engagement */}
+          <h5 className="h4 fw-bold d-inline">Likes per Topic per Year</h5>
+        </div>
+      </div>
+
+      <p className="mt-3 text-muted">
+        This chart shows how the number of likes received on tweets related to a selected topic has evolved over the years for each author. 
+        It helps identify trends in public interest and engagement on specific themes, such as politics, climate change, or health. 
+        By analyzing like counts per year, users can better understand which topics gained or lost popularity over time.
+      </p>
+
+      <div className="mb-3">
+        <label className="form-label mt-2">Select Author</label>
+        <select className="form-select mb-3" value={selectedAuthor} onChange={(e) => setSelectedAuthor(e.target.value)}>
+          <option value="Obama">Barack Obama</option>
+          <option value="Musk">Elon Musk</option>
+        </select>
+
+        <label className="form-label">Select Topic</label>
+        <select className="form-select" value={selectedTopic} onChange={(e) => setSelectedTopic(e.target.value)}>
+          {topics.map(topic => (
+            <option key={topic} value={topic}>{topic}</option>
+          ))}
+        </select>
+      </div>
+
+      {chartData ? (
+        <Line data={chartData} />
+      ) : (
+        <p>Loading chart data... Please select an author and topic.</p>
+      )}
     </motion.div>
   );
 };

@@ -18,24 +18,9 @@ const App = () => {
   const [response, setResponse] = useState(null); // Final response after streaming
   const [currentExplanation, setCurrentExplanation] = useState(''); // For streaming response
 
-  const [selectedTopic, setSelectedTopic] = useState('');
-  const [selectedAuthor, setSelectedAuthor] = useState('Obama'); 
-  const [topics, setTopics] = useState([]);
-
   useEffect(() => {
     AOS.init({ duration: 1000 });
   }, []);
-
-  useEffect(() => {
-    if (selectedAuthor) {
-      fetch(`http://localhost:8000/analytics/topics?author=${selectedAuthor}`)
-        .then(res => res.json())
-        .then(res => {
-          setTopics(res.topics);
-          setSelectedTopic(res.topics[0] || '');
-        });
-    }
-  }, [selectedAuthor]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -158,37 +143,10 @@ const App = () => {
 
       <LLM_TweetGenerator /> 
 
-      {/* Rest of components */}
-      <div className="card p-4 shadow mt-5" style={{ maxWidth: '700px', width: '100%' }} data-aos="fade-up">
-        <div className="mb-3">
-          <h5>Likes per Topic per Year</h5>
-          <p className="mt-3 text-muted">
-            This chart shows how the number of likes received on tweets related to a selected topic has evolved over the years for each author. 
-            It helps identify trends in public interest and engagement on specific themes, such as politics, climate change, or health. 
-            By analyzing like counts per year, users can better understand which topics gained or lost popularity over time.
-          </p>
+      <A1_LikesTopicYear /> 
 
-          <label className="form-label mt-2">Select Author</label>
-          <select className="form-select mb-3" value={selectedAuthor} onChange={(e) => setSelectedAuthor(e.target.value)}>
-            <option value="Obama">Barack Obama</option>
-            <option value="Musk">Elon Musk</option>
-          </select>
+      <A2_TopicTrendMonth />
 
-          <label className="form-label">Select Topic</label>
-          <select className="form-select" value={selectedTopic} onChange={(e) => setSelectedTopic(e.target.value)}>
-            {topics.map(topic => (
-              <option key={topic} value={topic}>{topic}</option>
-            ))}
-          </select>
-        </div>
-
-        <A1_LikesTopicYear topic={selectedTopic} author={selectedAuthor} />
-      </div>
-
-      <div className="card p-4 shadow mt-5" style={{ maxWidth: '700px', width: '100%' }} data-aos="fade-up">
-        <A2_TopicTrendMonth />
-      </div>
-      
       <AnimatePresence mode="wait">
         <A3_TopTweets key="top-tweets" />
       </AnimatePresence>

@@ -95,7 +95,6 @@ const LLM_TweetGenerator = () => {
   return (
     <div className="card p-4 shadow mt-5" data-aos="fade-up" style={{ maxWidth: '700px', width: '100%' }}>
       <div className="text-center mb-4">
-        {/* NEW ICON FOR TWEET GENERATION */}
         <i className="fas fa-robot fa-2x text-primary me-2"></i> 
         <h5 className="h4 fw-bold d-inline">Generate Tweet in Author's Style</h5>
         <p className="text-muted">

@@ -24,7 +24,12 @@ const A5_AverageSentimentYear = () => {
       exit={{ opacity: 0, y: -40 }}
       transition={{ duration: 0.5 }}
     >
-      <h5 className="mb-0">Average Sentiment per Year ({author})</h5>
+      <div className="text-center mb-0"> {/* Use text-center for horizontal centering */}
+        <div className="d-inline-flex align-items-center"> {/* Use d-inline-flex for icon and text alignment and inline centering */}
+          <i className="fas fa-smile-beam fa-lg text-primary me-2"></i> {/* Sentiment icon */}
+          <h5 className="h4 fw-bold d-inline">Average Sentiment per Year ({author})</h5>
+        </div>
+      </div>
       
 
       <p className="text-muted mb-4">

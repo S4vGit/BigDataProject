@@ -42,7 +42,12 @@ const A4_AverageSentimentTopic = () => {
 
   return (
     <div className="card p-4 shadow mt-5" style={{ maxWidth: '700px', width: '100%' }}>
-      <h5 className="mb-3">Average Sentiment by Topic</h5>
+      <div className="text-center mb-3">
+        <div className="d-inline-flex align-items-center"> 
+          <i className="fas fa-chart-bar fa-lg text-primary me-2"></i> 
+          <h5 className="h4 fw-bold d-inline">Average Sentiment by Topic</h5>
+        </div>
+      </div>
       <p className="text-muted mb-3">
         The "Average Sentiment by Topic" chart visualizes the overall sentiment (positive, neutral, or negative) associated with each topic based on tweet content. Each sentiment score is weighted by the confidence of the sentiment classifier to provide a more accurate average.
         This visualization helps users understand how different topics are generally perceived. For instance, topics with consistently negative sentiment might signal controversy or public dissatisfaction, while positive sentiment may indicate general approval or optimism. It is useful for analyzing audience mood and emotional trends in communication.
