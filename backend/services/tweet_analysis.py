@@ -10,6 +10,15 @@ encoder = SentenceTransformer("all-MiniLM-L6-v2")
 client = openai.OpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
 
 async def stream_llm_response(prompt: str):
+    """
+    Stream a response from the local LLM using LM Studio API.
+
+    Args:
+        prompt (str): The prompt to send to the LLM for generating a response.
+
+    Returns:
+        collections.abc.Generator[str, None, None]: A generator yielding chunks of the LLM's response.
+    """
     try:
         completion = client.chat.completions.create(
             model="local-model", # Local model name (using meta-llama-3.1-8b-instruct)

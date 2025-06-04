@@ -25,11 +25,10 @@ class Neo4jConnector:
         Retrieve tweets by a specific author and topic from the Neo4j database.
         
         Args:
-            author (str): The author's name to search for.
             topic (str): The topic to filter tweets by.
             
         Returns:
-            list: A list of tweets by the specified author and topic, each represented as a dictionary.
+            list: A list of tweets by the specified topic, each represented as a dictionary.
         """
         """if author not in  ["Obama", "Musk"]:
             print("[DEBUG] Author not found.")
@@ -42,6 +41,7 @@ class Neo4jConnector:
                 WHERE t.topic = $topic 
                 RETURN t.text AS text, t.date AS date, t.sentiment AS sentiment, t.author AS author
                 """,
+                
                 topic=topic
             )
             return [record.data() for record in result]
@@ -166,6 +166,7 @@ class Neo4jConnector:
         Args:
             metric (str): 'likes' or 'retweets'
             limit (int): number of top tweets to return
+            author (str): Author to filter tweets by (or 'All')
 
         Returns:
             list: tweets with id, content, likes, retweets, date, and topic

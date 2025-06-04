@@ -48,7 +48,7 @@ async def analyze_tweet(data: TweetRequest):
     index.add(corpus_embeddings)
 
     query_embedding = encoder.encode([data.tweet])
-    distances, indices = index.search(query_embedding, 5)
+    distances, indices = index.search(query_embedding, 10)
     
     # Prepare context tweets with authors
     context_tweets_with_authors = []
