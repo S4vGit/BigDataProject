@@ -23,10 +23,10 @@ async def stream_llm_response(prompt: str):
         completion = client.chat.completions.create(
             model="local-model", # Local model name (using meta-llama-3.1-8b-instruct)
             messages=[
-                {"role": "system", "content": "You are an expert in tweet analysis and author attribution. Provide concise and accurate explanations based on the context."},
+                {"role": "system", "content": "You are an expert in tweet author attribution. Provide concise and accurate explanations based on the context."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.3, # Making the model more deterministic
+            temperature=0.1, # Making the model more deterministic
             max_tokens=200,
             stream=True, # Enable streaming
         )
