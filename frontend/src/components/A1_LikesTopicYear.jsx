@@ -77,13 +77,13 @@ const A1_LikesTopicYear = () => {
           <i className="fas fa-thumbs-up fa-lg text-primary me-2"></i> {/* Icon for likes/engagement */}
           <h5 className="h4 fw-bold d-inline">Likes per Topic per Year</h5>
         </div>
-      </div>
 
-      <p className="mt-3 text-muted">
-        This chart shows how the number of likes received on tweets related to a selected topic has evolved over the years for each author. 
-        It helps identify trends in public interest and engagement on specific themes, such as politics, climate change, or health. 
-        By analyzing like counts per year, users can better understand which topics gained or lost popularity over time.
-      </p>
+        <p className="text-muted">
+          This chart shows how the number of likes received on tweets related to a selected topic has evolved over the years for each author. 
+          It helps identify trends in public interest and engagement on specific themes, such as politics, climate change, or health. 
+          By analyzing like counts per year, users can better understand which topics gained or lost popularity over time.
+        </p>
+      </div>
 
       <div className="mb-3">
         <label className="form-label mt-2">Select Author</label>

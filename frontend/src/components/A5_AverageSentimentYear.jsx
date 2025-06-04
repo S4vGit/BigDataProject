@@ -32,7 +32,7 @@ const A5_AverageSentimentYear = () => {
       </div>
       
 
-      <p className="text-muted mb-4">
+      <p className="text-muted">
         This chart displays the average sentiment of tweets over the years. 
         Each year's sentiment is computed based on the confidence-weighted sentiment score of tweets — positive tweets contribute positively, negative ones negatively, and neutral ones are counted as zero. 
         It helps identify how the general tone or public mood expressed in tweets has changed over time. 

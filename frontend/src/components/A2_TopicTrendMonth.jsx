@@ -73,12 +73,14 @@ const A2_TopicTrendMonth = () => {
           <i className="fas fa-chart-line fa-lg text-primary me-2"></i> {/* Icon for line chart/trend */}
           <h5 className="h4 fw-bold d-inline">Topic Trend per Month in {year}</h5>
         </div>
+
+        <p className="text-muted">
+          This chart displays the monthly distribution of tweet topics for a selected year and author. 
+          It allows users to observe how different topics vary in prominence throughout the year, 
+          helping identify seasonal patterns or bursts of public interest in specific themes.
+        </p>
       </div>
-      <p className="text-muted mb-3">
-        This chart displays the monthly distribution of tweet topics for a selected year and author. 
-        It allows users to observe how different topics vary in prominence throughout the year, 
-        helping identify seasonal patterns or bursts of public interest in specific themes.
-      </p>
+      
 
       <div className="row mb-4">
         <div className="col">

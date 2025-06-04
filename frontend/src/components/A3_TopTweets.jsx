@@ -30,12 +30,13 @@ const A3_TopTweets = () => {
           <i className="fas fa-medal fa-lg text-primary me-2"></i>
           <h5 className="h4 fw-bold d-inline">Top {limit} Tweet per {metric === 'likes' ? 'Like' : 'Retweet'} ({author}) </h5>
         </div>
-      </div>
-        <p className="text-muted mb-3">
+
+        <p className="text-muted">
             This table shows the top tweets ranked by the number of likes or retweets. You can switch between the two metrics and choose how many tweets to display.
             It helps identify the most engaging or viral tweets over time, giving insight into which topics or messages resonate most with the audience.
         </p>
-
+      </div>
+        
         <div className="d-flex mb-3 gap-3">
         <select className="form-select w-auto" value={metric} onChange={(e) => setMetric(e.target.value)}>
             <option value="likes">Like</option>
