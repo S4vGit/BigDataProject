@@ -1,14 +1,14 @@
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
-from schemas import TweetRequest 
+from schemas import TweetRequest, TweetGenerationRequest 
 import pandas as pd
 from neo4j_connector import Neo4jConnector
 import json
 import faiss
 
 from services.topic_extraction import classify_topic
-from services.tweet_analysis import stream_llm_response, encoder 
+from services.tweet_analysis_generation import stream_llm_response, stream_llm_generation, encoder 
 
 app = FastAPI()
 connector = Neo4jConnector()
@@ -24,11 +24,11 @@ app.add_middleware(
 
 
 @app.post("/analyze")
-async def analyze_tweet(data: TweetRequest):
+async def LLM_analyze_tweet(data: TweetRequest):
     topic, confidence = classify_topic(data.tweet)
     print(f"[DEBUG] Topic extracted: {topic} ({confidence:.2%})")
     
-    df = connector.get_tweets_by_author_topic(topic)
+    df = connector.LLM_get_tweets_by_topic(topic)
     df = pd.DataFrame(df)
     
     if df.empty:
@@ -127,6 +127,62 @@ Answer and give a brief explanation."""
 
 
     return StreamingResponse(generate_llm_response(), media_type="application/x-ndjson")
+
+@app.post("/generate_tweet")
+async def LLM_generate_author_tweet(data: TweetGenerationRequest):
+    author = data.author
+    topic = data.topic
+
+    print(f"[DEBUG] Generating tweet for Author: {author}, Topic: {topic}")
+
+    # Retrieve tweets by author and topic
+    df = connector.LLM_get_tweets_by_author_topic(author, topic)
+    df = pd.DataFrame(df)
+
+    if df.empty:
+        return JSONResponse(status_code=404, content={
+            "error": f"No tweets found for {author} on topic '{topic}'. Cannot generate.",
+            "streaming": False
+        })
+
+    # Randomly select 20 tweets (or fewer if less than 20 available)
+    sample_size = min(20, len(df))
+    sample_tweets = df.sample(n=sample_size)["text"].tolist() # .sample() to get random rows from the DataFrame
+
+    context_tweets = "\n".join([f'- "{t}"' for t in sample_tweets])
+    print(f"[DEBUG] Sample context tweets for generation:\n{context_tweets}")
+
+    # 3. Construct the prompt for the LLM
+    system_prompt = f"You are an expert in generating tweets in the style of a specific author. Your task is to produce a tweet that closely mimics the writing style, tone, and common vocabulary of {author} on the given topic."
+    user_prompt = f"""Based on these example tweets by {author} on the topic of {topic}:
+
+{context_tweets}
+
+Now, generate a new tweet in the style of {author} about {topic}. 
+The tweet should be concise and engaging. 
+Do NOT include any explanations or extra text, just the tweet itself."""
+
+    async def generate_response_stream():
+        # Initial chunk for frontend, indicating streaming has started
+        yield json.dumps({"generated_tweet": "", "streaming": True}) + "\n"
+
+        full_generated_tweet = ""
+        # Stream the response from the LLM
+        async for text_chunk in stream_llm_generation(system_prompt, user_prompt): 
+            full_generated_tweet += text_chunk
+            # Send partial update for frontend
+            yield json.dumps({"generated_tweet": full_generated_tweet, "streaming": True}) + "\n"
+        
+        # Post-processing to remove quotes
+        full_generated_tweet = full_generated_tweet.strip() # Remove leading/trailing whitespace
+        if full_generated_tweet.startswith('"') and full_generated_tweet.endswith('"'):
+            full_generated_tweet = full_generated_tweet[1:-1].strip() # Remove quotes and re-strip
+        
+        # Final chunk, indicating streaming is complete
+        yield json.dumps({"generated_tweet": full_generated_tweet, "streaming": False}) + "\n"
+        print(f"[FINAL GENERATED TWEET] Author: {author}, Topic: {topic}\nTweet: \"{full_generated_tweet}\"")
+
+    return StreamingResponse(generate_response_stream(), media_type="application/x-ndjson")
 
 @app.get("/analytics/topics")
 async def A_get_topics(author: str = Query(...)):

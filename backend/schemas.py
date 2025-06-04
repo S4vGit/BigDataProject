@@ -7,3 +7,7 @@ class TweetResponse(BaseModel):
     author: str
     confidence: float
     message: str
+
+class TweetGenerationRequest(BaseModel):
+    author: str
+    topic: str

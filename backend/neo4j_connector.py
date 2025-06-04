@@ -20,7 +20,7 @@ class Neo4jConnector:
         """
         self.driver.close()
         
-    def get_tweets_by_author_topic(self, topic: str):
+    def LLM_get_tweets_by_topic(self, topic: str):
         """
         Retrieve tweets by a specific author and topic from the Neo4j database.
         
@@ -42,6 +42,33 @@ class Neo4jConnector:
                 RETURN t.text AS text, t.date AS date, t.sentiment AS sentiment, t.author AS author
                 """,
                 
+                topic=topic
+            )
+            return [record.data() for record in result]
+
+    def LLM_get_tweets_by_author_topic(self, author: str, topic: str):
+        """
+        Retrieve tweets by a specific author and topic for tweet generation.
+        
+        Args:
+            author (str): The author to filter tweets by (e.g., "Obama", "Musk").
+            topic (str): The topic to filter tweets by.
+            
+        Returns:
+            list: A list of tweets by the specified author and topic, each as a dictionary.
+        """
+        if author not in ["Obama", "Musk"]:
+            print(f"[DEBUG] Author '{author}' not supported for tweet generation.")
+            return []
+        
+        with self.driver.session() as session:
+            result = session.run(
+                """
+                MATCH (t:Tweet)
+                WHERE t.author = $author AND t.topic = $topic
+                RETURN t.text AS text, t.date AS date, t.sentiment AS sentiment, t.author AS author
+                """,
+                author=author,
                 topic=topic
             )
             return [record.data() for record in result]
