@@ -9,6 +9,7 @@ import A2_TopicTrendMonth from './components/A2_TopicTrendMonth';
 import A3_TopTweets from './components/A3_TopTweets';
 import A4_AverageSentimentTopic from "./components/A4_AverageSentimentTopic";
 import A5_AverageSentimentYear from './components/A5_AverageSentimentYear';
+import LLM_TweetGenerator from './components/LLM_TweetGenerator';
 
 
 const App = () => {
@@ -154,6 +155,8 @@ const App = () => {
             </div>
         )}
       </div>
+
+      <LLM_TweetGenerator /> 
 
       {/* Rest of components */}
       <div className="card p-4 shadow mt-5" style={{ maxWidth: '700px', width: '100%' }} data-aos="fade-up">
