@@ -66,10 +66,10 @@ const A1_LikesTopicYear = () => {
 
   return (
     <motion.div
-      className="card p-4 shadow mt-5" // Aggiunte classi per lo stile della card
+      className="card p-4 shadow mt-5" 
       style={{ maxWidth: '700px', width: '100%' }}
-      data-aos="fade-up" // Mantenuto l'effetto AOS
-      key={selectedTopic + selectedAuthor} // Aggiorna la key per forzare il re-mount/animazione
+      data-aos="fade-up" 
+      key={selectedTopic + selectedAuthor} 
     >
       {/* Centered title with icon */}
       <div className="text-center mb-3">

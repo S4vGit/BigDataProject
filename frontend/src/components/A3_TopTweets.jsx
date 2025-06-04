@@ -24,6 +24,7 @@ const A3_TopTweets = () => {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -50 }} 
         transition={{ duration: 0.6 }}
+        data-aos="fade-up"
     >
         <div className="text-center mb-3">
         <div className="d-inline-flex align-items-center">
