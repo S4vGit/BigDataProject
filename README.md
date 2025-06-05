@@ -6,7 +6,7 @@ It is designed to run entirely locally, leveraging **LM Studio** for inference, 
 
 ---
 ## ⛓️ Pipeline Schema
-![diagrammaFunzionamento](images/diagrammaFunzionamento.png)
+![General_Pipeline](utils/General_Pipeline.png)
 
 
 ## 📁 Project Structure
