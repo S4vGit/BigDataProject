@@ -5,6 +5,10 @@ It is designed to run entirely locally, leveraging **LM Studio** for inference, 
 
 
 ---
+## ⛓️ Pipeline Schema
+![diagrammaFunzionamento](images/diagrammaFunzionamento.png)
+
+
 ## 📁 Project Structure
 ```
 BigDataProject/
